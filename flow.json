@@ -1,0 +1,60 @@
+{
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"contracts": {
+		"CoinToss": "./contracts/CoinToss.cdc",
+		"FlowToken": {
+			"source": "./contracts/utility/FlowToken.cdc",
+			"aliases": {
+				"emulator": "0x0ae53cb6e3f42a79"
+			}
+		},
+		"FungibleToken": {
+			"source": "./contracts/utility/FungibleToken.cdc",
+			"aliases": {
+				"emulator": "0xee82856bf20e2aa6"
+			}
+		},
+		"MetadataViews": {
+			"source": "./contracts/utility/MetadataViews.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "./contracts/utility/NonFungibleToken.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
+		"PseudoRandomGenerator": "./contracts/PseudoRandomGenerator.cdc",
+		"RandomBeaconHistory": "./contracts/RandomBeaconHistory.cdc",
+		"ViewResolver": {
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7"
+			},
+			"source": "./contracts/utility/ViewResolver.cdc"
+		}
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"NonFungibleToken",
+				"MetadataViews",
+				"ViewResolver",
+				"RandomBeaconHistory",
+				"PseudoRandomGenerator",
+				"CoinToss"
+			]
+		}
+	}
+}
