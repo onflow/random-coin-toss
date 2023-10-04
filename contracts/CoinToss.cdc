@@ -1,4 +1,6 @@
+import "FungibleToken"
 import "FlowToken"
+
 import "RandomBeaconHistory"
 import "PseudoRandomGenerator"
 
@@ -6,7 +8,10 @@ access(all) contract CoinToss {
 
     access(self) let reserve: @FlowToken.Vault
 
-    access(self) let ReceiptStoragePath: StoragePath
+    access(all) let ReceiptStoragePath: StoragePath
+
+    access(all) event CoinTossBet(betAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event CoinTossReveal(betAmount: UFix64, winningAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
 
     access(all) resource Receipt {
         access(all) let betAmount: UFix64
@@ -21,32 +26,42 @@ access(all) contract CoinToss {
     // PRG implementation is not provided by the FLIP, we assume this contract
     // imports a suitable PRG implementation
 
-    access(all) fun commitCointoss(bet: @FlowToken.Vault): @Receipt {
+    access(all) fun commitCoinToss(bet: @FungibleToken.Vault): @Receipt {
         let receipt <- create Receipt(
                 betAmount: bet.balance
             )
         // commit the bet
-        // `self.reserve` is a `@FlowToken.Vault` field defined on the app contract
+        // `self.reserve` is a `@FungibleToken.Vault` field defined on the app contract
         //  and represents a pool of funds
         self.reserve.deposit(from: <-bet)
+        
+        emit CoinTossBet(betAmount: receipt.betAmount, commitBlock: receipt.commitBlock, receiptID: receipt.uuid)
+        
         return <- receipt
     }
 
-    access(all) fun revealCointoss(receipt: @Receipt): @FlowToken.Vault {
-        let currentBlock = getCurrentBlock().height
-        if receipt.commitBlock >= currentBlock {
-            panic("cannot reveal yet")
+    access(all) fun revealCoinToss(receipt: @Receipt): @FungibleToken.Vault {
+        pre {
+            receipt.commitBlock <= getCurrentBlock().height: "Cannot reveal before commit block"
         }
 
-        let winnings = receipt.betAmount * 2.0
+        let betAmount = receipt.betAmount
+        let commitBlock = receipt.commitBlock
+        let receiptID = receipt.uuid
         let coin = self.randomCoin(atBlockHeight: receipt.commitBlock, salt: receipt.uuid)
+
         destroy receipt
 
         if coin == 1 {
-            return <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
+            emit CoinTossReveal(betAmount: betAmount, winningAmount: 0.0, commitBlock: commitBlock, receiptID: receiptID)
+            return <- FlowToken.createEmptyVault()
         }
-
-        return <- (self.reserve.withdraw(amount: winnings) as! @FlowToken.Vault)
+        
+        let reward <- self.reserve.withdraw(amount: betAmount * 2.0)
+        
+        emit CoinTossReveal(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
+        
+        return <- reward
     }
 
     access(all) fun randomCoin(atBlockHeight: UInt64, salt: UInt64): UInt8 {
@@ -73,7 +88,7 @@ access(all) contract CoinToss {
         self.reserve <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
         let seedVault = self.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
         self.reserve.deposit(
-            from: <-seedVault.withdraw(amount: 100.0)
+            from: <-seedVault.withdraw(amount: 1000.0)
         )
     
         self.ReceiptStoragePath = /storage/CoinTossReceipt
