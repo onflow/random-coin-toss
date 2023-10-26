@@ -20,7 +20,6 @@ var (
 	placeholderRandomBeaconHistory		= regexp.MustCompile(`"RandomBeaconHistory"`)
 	placeholderPseudoRandomGenerator	= regexp.MustCompile(`"PseudoRandomGenerator"`)
 	placeholderCoinToss			      	= regexp.MustCompile(`"CoinToss"`)
-
 )
 
 const (

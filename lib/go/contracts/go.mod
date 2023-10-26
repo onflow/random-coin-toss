@@ -1,4 +1,4 @@
-module github.com/onflow/random-coin_toss/lib/go/contracts
+module github.com/onflow/random-coin-toss/lib/go/contracts
 
 go 1.16
 
