@@ -2,6 +2,8 @@
 test:
 	$(MAKE) test -C contracts
 	$(MAKE) test -C templates
+	$(MAKE) test -C test
+	
 
 .PHONY: generate
 generate:
@@ -12,3 +14,4 @@ generate:
 ci:
 	$(MAKE) ci -C contracts
 	$(MAKE) ci -C templates
+	$(MAKE) ci -C test
