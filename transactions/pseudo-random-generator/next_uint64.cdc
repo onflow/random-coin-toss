@@ -1,6 +1,7 @@
 import "PseudoRandomGenerator"
 
-/// Saves and links a .PRG resource in the signer's storage and public namespace
+/// For demonstration - generates the given number of random numbers
+/// These values might be passed to a consuming contract or resource
 ///
 transaction(generationLength: Int) {
     prepare(signer: AuthAccount) {

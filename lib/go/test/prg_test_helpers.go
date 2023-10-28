@@ -28,18 +28,22 @@ func deployPRGContract(
 	return prgAddress
 }
 
-func getNextUInt64(
+// calls a script which creates a new PRG resource from the given seed and
+// random salt, gets the next uint64 and destroys the prg resource before
+// returning the next uint64
+func GetNextUInt64NewPRG(
 	t *testing.T,
 	b emulator.Emulator,
 	adapter *adapters.SDKAdapter,
 	prgAddress flow.Address,
+	seed []byte,
 ) (uint64, error) {
 
 	script := templates.GenerateNextUInt64NewPRG(prgAddress)
 	result, err := b.ExecuteScript(
 		script,
 		[][]byte{
-			jsoncdc.MustEncode(bytesToCadenceArray(GetRandomSeed(t))),
+			jsoncdc.MustEncode(bytesToCadenceArray(seed)),
 			jsoncdc.MustEncode(cadence.NewUInt64(GetRandomSalt(t))),
 		},
 	)
@@ -48,10 +52,10 @@ func getNextUInt64(
 		t.Log(result.Error.Error())
 	}
 
-	// return uint64(result.Value.String()), err
 	return CadenceUInt64ToUInt64(result.Value), err
 }
 
+// gets a random 32 byte array using crypto/rand
 func GetRandomSeed(t *testing.T) []byte {
 	buf := make([]byte, 32)
 
@@ -61,6 +65,7 @@ func GetRandomSeed(t *testing.T) []byte {
 	return buf
 }
 
+// gets a random uint64 using crypto/rand
 func GetRandomSalt(t *testing.T) uint64 {
 	var b [8]byte
 

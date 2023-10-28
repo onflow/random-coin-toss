@@ -20,8 +20,11 @@ func TestNextUInt64NewPRG(t *testing.T) {
 		n := 1 << (1 + mrand.Intn(10))
 		classWidth := (math.MaxUint64 / uint64(n)) + 1
 
+		// using the same seed, the salt varies in getNextUInt64()
+		seed := GetRandomSeed(t)
+
 		uintf := func() (uint64, error) {
-			return getNextUInt64(t, b, adapter, prgAddress)
+			return GetNextUInt64NewPRG(t, b, adapter, prgAddress, seed)
 		}
 
 		random.BasicDistributionTest(t, uint64(n), uint64(classWidth), uintf)
