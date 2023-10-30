@@ -1,42 +1,62 @@
 {
 	"contracts": {
-		"CoinToss": "./contracts/CoinToss.cdc",
+		"CoinToss": {
+			"source": "./contracts/CoinToss.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7"
+			}
+		},
 		"FlowToken": {
 			"source": "./contracts/utility/FlowToken.cdc",
 			"aliases": {
-				"emulator": "0ae53cb6e3f42a79"
+				"emulator": "0ae53cb6e3f42a79",
+				"mainnet": "1654653399040a61",
+				"testnet": "7e60df042a9c0868"
 			}
 		},
 		"FungibleToken": {
 			"source": "./contracts/utility/FungibleToken.cdc",
 			"aliases": {
-				"emulator": "ee82856bf20e2aa6"
+				"emulator": "ee82856bf20e2aa6",
+				"mainnet": "f233dcee88fe0abe",
+				"testnet": "9a0766d93b6608b7"
 			}
 		},
 		"MetadataViews": {
 			"source": "./contracts/utility/MetadataViews.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
 			}
 		},
 		"NonFungibleToken": {
 			"source": "./contracts/utility/NonFungibleToken.cdc",
 			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
+			}
+		},
+		"PseudoRandomGenerator": {
+			"source": "./contracts/PseudoRandomGenerator.cdc",
+			"aliases": {
 				"emulator": "f8d6e0586b0a20c7"
 			}
 		},
-		"PseudoRandomGenerator": "./contracts/PseudoRandomGenerator.cdc",
 		"RandomBeaconHistory": {
 			"source": "./contracts/RandomBeaconHistory.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testnet": "0x8c5303eaa26202d6"
+				"testnet": "8c5303eaa26202d6"
 			}
 		},
 		"ViewResolver": {
 			"source": "./contracts/utility/ViewResolver.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "1d7e57aa55817448",
+				"testnet": "631e88ae7f1d7c20"
 			}
 		}
 	},
