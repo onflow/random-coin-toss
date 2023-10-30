@@ -1,8 +1,6 @@
 .PHONY: test
 test:
-	$(MAKE) generate -C lib/go
-	$(MAKE) test -C lib/go
+	go test -v ./...
 
 .PHONY: ci
-ci:
-	$(MAKE) ci -C lib/go
+ci: test

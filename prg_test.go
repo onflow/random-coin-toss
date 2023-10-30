@@ -5,14 +5,14 @@ import (
 	mrand "math/rand"
 	"testing"
 
+	. "github.com/bjartek/overflow"
 	"github.com/onflow/flow-go/crypto/random"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestNextUInt64NewPRG(t *testing.T) {
-	b, adapter, accountKeys := newTestSetup(t)
-
-	prgAccountKey, _ := accountKeys.NewWithSigner()
-	prgAddress := deployPRGContract(t, b, adapter, prgAccountKey)
+func TestNextUInt64NewPRGOverflow(t *testing.T) {
+	o, err := OverflowTesting()
+	assert.NoError(t, err)
 
 	t.Run("Should generate uniform distribution", func(t *testing.T) {
 		// make sure n is a power of 2 so that there is no bias in the last class
@@ -24,7 +24,7 @@ func TestNextUInt64NewPRG(t *testing.T) {
 		seed := GetRandomSeed(t)
 
 		uintf := func() (uint64, error) {
-			return GetNextUInt64NewPRG(t, b, adapter, prgAddress, seed)
+			return GetNextUInt64NewPRG(o, t, seed)
 		}
 
 		random.BasicDistributionTest(t, uint64(n), uint64(classWidth), uintf)
