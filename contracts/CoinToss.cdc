@@ -2,7 +2,7 @@ import "FungibleToken"
 import "FlowToken"
 
 import "RandomBeaconHistory"
-import "PseudoRandomGenerator"
+import "XorShift128Plus"
 
 access(all) contract CoinToss {
 
@@ -70,9 +70,9 @@ access(all) contract CoinToss {
         let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
         assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
 
-        // instantiate a PRG object using external `createPRG` that takes a `seed` 
-        // and `salt` and returns a pseudo-random-generator object.
-        let prg <- PseudoRandomGenerator.createPRG(
+        // instantiate a PRG object using external `createPRG()` that takes a `seed` 
+        // and `salt` and returns a pseudo-random generator object.
+        let prg <- XorShift128Plus.createPRG(
                 sourceOfRandomness: sourceOfRandomness.value,
                 salt: salt
             )

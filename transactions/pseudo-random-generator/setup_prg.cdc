@@ -1,22 +1,22 @@
-import "PseudoRandomGenerator"
+import "XorShift128Plus"
 
 /// Saves and links a .PRG resource in the signer's storage and public namespace
 ///
 transaction(seed: [UInt8], salt: UInt64) {
     prepare(signer: AuthAccount) {
-        if signer.type(at: PseudoRandomGenerator.StoragePath) != nil {
+        if signer.type(at: XorShift128Plus.StoragePath) != nil {
             return
         }
         signer.save(
-             <- PseudoRandomGenerator.createPRG(
+             <- XorShift128Plus.createPRG(
                 sourceOfRandomness: seed,
                 salt: salt
             ),
-            to: PseudoRandomGenerator.StoragePath
+            to: XorShift128Plus.StoragePath
         )
-        signer.link<&PseudoRandomGenerator.PRG>(
-            PseudoRandomGenerator.PublicPath,
-            target: PseudoRandomGenerator.StoragePath
+        signer.link<&XorShift128Plus.PRG>(
+            XorShift128Plus.PublicPath,
+            target: XorShift128Plus.StoragePath
         )
     }
 }
