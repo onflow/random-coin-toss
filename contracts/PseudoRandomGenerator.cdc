@@ -38,7 +38,7 @@ access(all) contract PseudoRandomGenerator {
             self.state0 = b
             a = a ^ (a << 23) // a
             a = a ^ (a >> 17) // b
-            a = b ^ (b >> 26) // c
+            a = a ^ b ^ (b >> 26) // c
             self.state1 = a
 
             let randUInt64: UInt64 = UInt64(a + b)
