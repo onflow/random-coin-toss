@@ -1,15 +1,13 @@
 import "XorShift128Plus"
 
-/// Saves and links a .PRG resource in the signer's storage and public namespace
+/// Advances the XorShift128Plus.PRG state and generates a random number. Since values cannot be returned from
+/// transactions, a caller would need to have queried the PRG with prg.getNextUInt64() before running this transaction
+/// to retrieve the number that will be generated. 
 ///
-transaction(generationLength: Int) {
+transaction {
     prepare(signer: AuthAccount) {
-        if let prg = signer.borrow<&XorShift128Plus.PRG>(from: XorShift128Plus.StoragePath) {
-            var i = 0
-            while i < generationLength {
-                prg.nextUInt64()
-                i = i + 1
-            }            
-        }
+        signer.borrow<&XorShift128Plus.PRG>(from: XorShift128Plus.StoragePath)
+            ?.nextUInt64()
+            ?? panic("No PRG found in signer's storage")
     }
 }
