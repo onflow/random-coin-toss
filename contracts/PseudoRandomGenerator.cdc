@@ -52,11 +52,10 @@ access(all) contract PseudoRandomGenerator {
     /// Helper function to convert an array of big endian bytes to Word64
     access(contract) fun bigEndianBytesToWord64(bytes: [UInt8], start: Int): Word64 {
         pre {
-            start % 8 == 0: "Expecting start to be a multiple of 8"
-            bytes.length % 8 == 0: "byte array length to be a multiple of 8"
+            start + 8 < bytes.length: "At least 8 bytes from the start are required for conversion"
         }
         var value: UInt64 = 0
-        var i = 0
+        var i: Int = 0
         while i < 8 {
             value = value << 8 | UInt64(bytes[start + i])
             i = i + 1
