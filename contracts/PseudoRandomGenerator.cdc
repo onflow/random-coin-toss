@@ -11,7 +11,7 @@ access(all) contract PseudoRandomGenerator {
         access(all) let sourceOfRandomness: [UInt8]
         access(all) let salt: Word64
         
-        /// The states below are of type Word64 to prevent overflow/underflow
+        /// The states below are of type Word64 (instead of UInt64) to prevent overflow/underflow
         //
         access(all) var state0: Word64
         access(all) var state1: Word64
@@ -40,17 +40,17 @@ access(all) contract PseudoRandomGenerator {
             self.state0 = b
             a = a ^ (a << 23) // a
             a = a ^ (a >> 17) // b
-            a = b ^ (b >> 5) // c
+            a = b ^ (b >> 26) // c
             self.state1 = a
 
-            let randUInt64: UInt64 = UInt64((a + b) ^ self.salt)
+            let randUInt64: UInt64 = UInt64(a + b)
             emit NextUInt64(id: self.uuid, value: randUInt64)
             return randUInt64
         }
     }
 
-    /// Helper function to convert an array of bytes to Word64
-    access(contract) fun bytesToWord64(bytes: [UInt8], start: Int): Word64 {
+    /// Helper function to convert an array of big endian bytes to Word64
+    access(contract) fun bigEndianBytesToWord64(bytes: [UInt8], start: Int): Word64 {
         pre {
             start % 8 == 0: "Expecting start to be a multiple of 8"
             bytes.length % 8 == 0: "byte array length to be a multiple of 8"
