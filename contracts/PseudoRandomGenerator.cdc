@@ -8,7 +8,6 @@ access(all) contract PseudoRandomGenerator {
     /// While not limited to 128 bits of state, this PRG is largely informed by XORShift128+
     ///
     access(all) resource PRG {
-        access(all) let sourceOfRandomness: [UInt8]
         access(all) let salt: Word64
         
         /// The states below are of type Word64 (instead of UInt64) to prevent overflow/underflow
@@ -20,7 +19,6 @@ access(all) contract PseudoRandomGenerator {
             pre {
                 sourceOfRandomness.length == 32: "Expecting 32 bytes"
             }
-            self.sourceOfRandomness = sourceOfRandomness
             self.salt = Word64(salt)
 
             // Convert the seed bytes to two Word64 values for state initialization
