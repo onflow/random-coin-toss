@@ -24,10 +24,10 @@ access(all) contract PseudoRandomGenerator {
             self.salt = Word64(salt)
 
             // Convert the seed bytes to two Word64 values for state initialization
-            let segment0 = PseudoRandomGenerator.bytesToWord64(bytes: sourceOfRandomness, start: 0)
-            let segment1 = PseudoRandomGenerator.bytesToWord64(bytes: sourceOfRandomness, start: 8)
-            let segment2 = PseudoRandomGenerator.bytesToWord64(bytes: sourceOfRandomness, start: 16)
-            let segment3 = PseudoRandomGenerator.bytesToWord64(bytes: sourceOfRandomness, start: 24)
+            let segment0 = PseudoRandomGenerator.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 0)
+            let segment1 = PseudoRandomGenerator.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 8)
+            let segment2 = PseudoRandomGenerator.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 16)
+            let segment3 = PseudoRandomGenerator.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 24)
 
             self.state0 = segment0 ^ segment1
             self.state1 = segment2 ^ segment3
