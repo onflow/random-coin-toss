@@ -8,7 +8,7 @@ import Crypto
 ///
 access(all) contract Xorshift128plus {
 
-    /// While not limited to 128 bits of state, this PRG is largely informed by XORShift128+
+    /// While not limited to 128 bits of state, this PRG is largely informed by xorshift128+
     ///
     access(all) struct PRG {
 
@@ -25,7 +25,7 @@ access(all) contract Xorshift128plus {
         ///
         init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
-                sourceOfRandomness.length >= 16: "Expecting 16 bytes as input seed"
+                sourceOfRandomness.length >= 16: "At least 16 bytes of entropy should be used"
             }
 
             let tmp: [UInt8] = sourceOfRandomness.concat(salt)
