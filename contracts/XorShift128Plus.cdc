@@ -19,11 +19,13 @@ access(all) contract Xorshift128plus {
 
         /// Initializer for PRG struct
         ///
-        /// @param sourceOfRandomness: The 32 byte source of randomness used to seed the PRG
+        /// @param sourceOfRandomness: The entropy bytes used to seed the PRG. It is recommended to use at least 16
+        /// bytes of entropy.
         /// @param salt: The bytes used to salt the source of randomness
+        ///
         init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
-                sourceOfRandomness.length == 16: "Expecting 16 bytes as input seed"
+                sourceOfRandomness.length >= 16: "Expecting 16 bytes as input seed"
             }
 
             let tmp: [UInt8] = sourceOfRandomness.concat(salt)
@@ -35,8 +37,6 @@ access(all) contract Xorshift128plus {
             // Convert the seed bytes to two Word64 values for state initialization
             let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 0)
             let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 8)
-            let segment2: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 16)
-            let segment3: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 24)
 
             self.state0 = segment0
             self.state1 = segment1
