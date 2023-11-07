@@ -11,11 +11,11 @@ transaction(sourceOfRandomness: [UInt8], salt: [UInt8], generationLength: Int) {
 
     prepare(signer: AuthAccount) {
         let prg = Xorshift128plus.PRG(
-                sourceOfRandomness: sourceOfRandomness.value,
+                sourceOfRandomness: sourceOfRandomness,
                 salt: salt
             )
 
-        var i:Int = 0
+        var i: Int = 0
         let randomNumbers: [UInt64] = []
         // Generate the desired number of random numbers
         while i < generationLength {
