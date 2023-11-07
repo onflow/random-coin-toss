@@ -23,7 +23,7 @@ access(all) contract Xorshift128plus {
         /// @param salt: The bytes used to salt the source of randomness
         init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
-                sourceOfRandomness.length == 32: "Expecting 32 bytes as sourceOfRandomness"
+                sourceOfRandomness.length == 16: "Expecting 16 bytes as input seed"
             }
 
             let tmp: [UInt8] = sourceOfRandomness.concat(salt)
@@ -38,8 +38,8 @@ access(all) contract Xorshift128plus {
             let segment2: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 16)
             let segment3: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 24)
 
-            self.state0 = segment0 ^ segment1
-            self.state1 = segment2 ^ segment3
+            self.state0 = segment0
+            self.state1 = segment1
         }
 
         /// Advances the PRG state and generates the next UInt64 value
@@ -59,7 +59,7 @@ access(all) contract Xorshift128plus {
             a = a ^ b ^ (b >> 26) // c
             self.state1 = a
 
-            let randUInt64: UInt64 = UInt64(a + b)
+            let randUInt64: UInt64 = UInt64(Word64(a) + Word64(b))
             return randUInt64
         }
     }
