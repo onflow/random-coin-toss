@@ -8,7 +8,7 @@ import "Xorshift128plus"
 ///
 access(all) fun main(sourceOfRandomness: [UInt8], salt: [UInt8], generationLength: Int): [UInt64] {
     let prg = Xorshift128plus.PRG(
-            sourceOfRandomness: sourceOfRandomness.value,
+            sourceOfRandomness: sourceOfRandomness,
             salt: salt
         )
 
