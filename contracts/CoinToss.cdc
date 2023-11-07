@@ -23,9 +23,6 @@ access(all) contract CoinToss {
         }
     }
 
-    // PRG implementation is not provided by the FLIP, we assume this contract
-    // imports a suitable PRG implementation
-
     access(all) fun commitCoinToss(bet: @FungibleToken.Vault): @Receipt {
         let receipt <- create Receipt(
                 betAmount: bet.balance
@@ -70,16 +67,15 @@ access(all) contract CoinToss {
         let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
         assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
 
-        // instantiate a PRG object using external `createPRG()` that takes a `seed` 
-        // and `salt` and returns a pseudo-random generator object.
-        let prg <- Xorshift128plus.createPRG(
+        // instantiate a PRG object, seeding a source of randomness with and `salt` and returns a pseudo-random
+        // generator object.
+        let prg = Xorshift128plus.PRG(
                 sourceOfRandomness: sourceOfRandomness.value,
                 salt: salt
             )
 
         // derive a 64-bit random using the object `prg`
         let rand = prg.nextUInt64()
-        destroy prg
         
         return UInt8(rand & 1)
     }

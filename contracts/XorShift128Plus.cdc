@@ -4,22 +4,30 @@ import Crypto
 ///
 access(all) contract Xorshift128plus {
 
-    access(all) let StoragePath: StoragePath
-    access(all) let PublicPath: PublicPath
-
     /// While not limited to 128 bits of state, this PRG is largely informed by XORShift128+
     ///
-    access(all) resource PRG {
+    access(all) struct PRG {
 
         // The states below are of type Word64 (instead of UInt64) to prevent overflow/underflow as state evolves
         //
         access(all) var state0: Word64
         access(all) var state1: Word64
 
-        init(sourceOfRandomness: [UInt8]) {
+        /// Initializer for PRG struct
+        ///
+        /// @param sourceOfRandomness: The 32 byte source of randomness used to seed the PRG
+        /// @param salt: The bytes used to salt the source of randomness
+        init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
                 sourceOfRandomness.length == 32: "Expecting 32 bytes as sourceOfRandomness"
             }
+
+            let tmp: [UInt8] = sourceOfRandomness.concat(salt)
+            // Hash is 32 bytes
+            let hash: [UInt8] = Crypto.hash(tmp, algorithm: HashAlgorithm.SHA3_256)
+            // Reduce the seed to 16 bytes
+            let seed: [UInt8] = hash.slice(from: 0, upTo: 16)
+
             // Convert the seed bytes to two Word64 values for state initialization
             let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 0)
             let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 8)
@@ -70,26 +78,5 @@ access(all) contract Xorshift128plus {
             i = i + 1
         }
         return Word64(value)
-    }
-
-    /// Creates a new XORSift128+ PRG with the given source of randomness and salt
-    ///
-    /// @param sourceOfRandomness: The 32 byte source of randomness used to seed the PRG
-    /// @param salt: The bytes used to salt the source of randomness
-    ///
-    /// @return A new PRG resource
-    access(all) fun createPRG(sourceOfRandomness: [UInt8], salt: [UInt8]): @PRG {
-        let tmp: [UInt8] = sourceOfRandomness.concat(salt)
-        // Hash is 32 bytes
-        let hash: [UInt8] = Crypto.hash(tmp, algorithm: HashAlgorithm.SHA3_256)
-        // Reduce the seed to 16 bytes
-        let seed: [UInt8] = hash.slice(from: 0, upTo: 16)
-
-        return <- create PRG(sourceOfRandomness: seed)
-    }
-
-    init() {
-        self.StoragePath = StoragePath(identifier: "Xorshift128plusPRG_".concat(self.account.address.toString()))!
-        self.PublicPath = PublicPath(identifier: "Xorshift128plusPRG_".concat(self.account.address.toString()))!
     }
 }
