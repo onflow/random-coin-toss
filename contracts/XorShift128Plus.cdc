@@ -1,6 +1,10 @@
 import Crypto
 
-/// Defines a xorsift128+ pseudo random generator as a resource
+/// Defines a xorsift128+ pseudo random generator (PRG) struct used to generate random numbers given some
+/// sourceOfRandomness and salt.
+///
+/// See FLIP 123 for more details: https://github.com/onflow/flips/blob/main/protocol/20230728-commit-reveal.md
+/// And the onflow/random-coin-toss repo for implementation context: https://github.com/onflow/random-coin-toss
 ///
 access(all) contract Xorshift128plus {
 
