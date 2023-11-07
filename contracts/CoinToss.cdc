@@ -71,7 +71,7 @@ access(all) contract CoinToss {
         // generator object.
         let prg = Xorshift128plus.PRG(
                 sourceOfRandomness: sourceOfRandomness.value,
-                salt: salt
+                salt: salt.toBigEndianBytes()
             )
 
         // derive a 64-bit random using the object `prg`
