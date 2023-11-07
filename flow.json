@@ -25,7 +25,7 @@
 				"emulator": "f8d6e0586b0a20c7"
 			}
 		},
-		"XorShift128Plus": "./contracts/XorShift128Plus.cdc",
+		"Xorshift128plus": "./contracts/Xorshift128plus.cdc",
 		"RandomBeaconHistory": "./contracts/RandomBeaconHistory.cdc",
 		"ViewResolver": {
 			"source": "./contracts/utility/ViewResolver.cdc",
@@ -52,7 +52,7 @@
 				"MetadataViews",
 				"ViewResolver",
 				"RandomBeaconHistory",
-				"XorShift128Plus",
+				"Xorshift128plus",
 				"CoinToss"
 			]
 		}

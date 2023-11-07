@@ -2,7 +2,7 @@ import Crypto
 
 /// Defines a xorsift128+ pseudo random generator as a resource
 ///
-access(all) contract XorShift128Plus {
+access(all) contract Xorshift128plus {
 
     access(all) let StoragePath: StoragePath
     access(all) let PublicPath: PublicPath
@@ -21,10 +21,10 @@ access(all) contract XorShift128Plus {
                 sourceOfRandomness.length == 32: "Expecting 32 bytes as sourceOfRandomness"
             }
             // Convert the seed bytes to two Word64 values for state initialization
-            let segment0: Word64 = XorShift128Plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 0)
-            let segment1: Word64 = XorShift128Plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 8)
-            let segment2: Word64 = XorShift128Plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 16)
-            let segment3: Word64 = XorShift128Plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 24)
+            let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 0)
+            let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 8)
+            let segment2: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 16)
+            let segment3: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 24)
 
             self.state0 = segment0 ^ segment1
             self.state1 = segment2 ^ segment3
@@ -89,7 +89,7 @@ access(all) contract XorShift128Plus {
     }
 
     init() {
-        self.StoragePath = StoragePath(identifier: "XorShift128PlusPRG_".concat(self.account.address.toString()))!
-        self.PublicPath = PublicPath(identifier: "XorShift128PlusPRG_".concat(self.account.address.toString()))!
+        self.StoragePath = StoragePath(identifier: "Xorshift128plusPRG_".concat(self.account.address.toString()))!
+        self.PublicPath = PublicPath(identifier: "Xorshift128plusPRG_".concat(self.account.address.toString()))!
     }
 }

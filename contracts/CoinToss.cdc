@@ -2,7 +2,7 @@ import "FungibleToken"
 import "FlowToken"
 
 import "RandomBeaconHistory"
-import "XorShift128Plus"
+import "Xorshift128plus"
 
 access(all) contract CoinToss {
 
@@ -72,7 +72,7 @@ access(all) contract CoinToss {
 
         // instantiate a PRG object using external `createPRG()` that takes a `seed` 
         // and `salt` and returns a pseudo-random generator object.
-        let prg <- XorShift128Plus.createPRG(
+        let prg <- Xorshift128plus.createPRG(
                 sourceOfRandomness: sourceOfRandomness.value,
                 salt: salt
             )

@@ -1,22 +1,22 @@
-import "XorShift128Plus"
+import "Xorshift128plus"
 
 /// Saves and links a .PRG resource in the signer's storage and public namespace
 ///
 transaction(seed: [UInt8], salt: UInt64) {
     prepare(signer: AuthAccount) {
-        if signer.type(at: XorShift128Plus.StoragePath) != nil {
+        if signer.type(at: Xorshift128plus.StoragePath) != nil {
             return
         }
         signer.save(
-             <- XorShift128Plus.createPRG(
+             <- Xorshift128plus.createPRG(
                 sourceOfRandomness: seed,
                 salt: salt
             ),
-            to: XorShift128Plus.StoragePath
+            to: Xorshift128plus.StoragePath
         )
-        signer.link<&XorShift128Plus.PRG>(
-            XorShift128Plus.PublicPath,
-            target: XorShift128Plus.StoragePath
+        signer.link<&Xorshift128plus.PRG>(
+            Xorshift128plus.PublicPath,
+            target: Xorshift128plus.StoragePath
         )
     }
 }
