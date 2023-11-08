@@ -1,6 +1,6 @@
 # [WIP] Random Coin Toss
 
-> :warning: This repo is still a work in progress - the underlying RandomBeaconHistory is also still a work in progress
+> :warning: This repo is still a work in progress
 
 ## Overview
 
