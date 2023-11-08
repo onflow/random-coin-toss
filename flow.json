@@ -45,6 +45,7 @@
 			}
 		},
 		"RandomBeaconHistory": "./contracts/RandomBeaconHistory.cdc",
+		"RandomResultStorage": "./contracts/utility/RandomResultStorage.cdc",
 		"ViewResolver": {
 			"source": "./contracts/utility/ViewResolver.cdc",
 			"aliases": {
@@ -52,6 +53,12 @@
 				"mainnet": "1d7e57aa55817448",
 				"testnet": "631e88ae7f1d7c20"
 			}
+		}
+	},
+	"emulators": {
+		"default": {
+			"port": 3569,
+			"serviceAccount": "emulator-account"
 		}
 	},
 	"networks": {
@@ -63,6 +70,10 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
+		},
+		"emulator-alice": {
+			"address": "0x01cf0e2f2f715450",
+			"key": "1a05ba433be5af2988e814d1e4fa08f1574140e6cb5649a861cc6377718c51be"
 		}
 	},
 	"deployments": {
@@ -73,7 +84,8 @@
 				"ViewResolver",
 				"RandomBeaconHistory",
 				"Xorshift128plus",
-				"CoinToss"
+				"CoinToss",
+				"RandomResultStorage"
 			]
 		}
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNextUInt64NewPRGOverflow(t *testing.T) {
+func TestNextUInt64NewPRG(t *testing.T) {
 	o, err := OverflowTesting()
 	assert.NoError(t, err)
 
@@ -20,13 +20,43 @@ func TestNextUInt64NewPRGOverflow(t *testing.T) {
 		n := 1 << (1 + mrand.Intn(10))
 		classWidth := (math.MaxUint64 / uint64(n)) + 1
 
-		// using the same seed, the salt is randomized in GetNextUInt64NewPRGRandSalt()
 		seed := GetRandomBytes(t, 32)
+		salt := GetRandomBytes(t, 8)
 
+		// hardcoding here is fragile as it's determined within
+		// flow-go/crypto/rand_utils
+		sampleSize := n * 1000
+		maxBatchSize := 5000
+
+		// initialize PRG object in RandomResultStorage helper contract
+		InitializePRG(o, t, seed, salt)
+		// generate results in batches due to transaction computational limit
+		ProcessBatches(sampleSize, maxBatchSize, func(startIdx, batchSize int) {
+			GenerateResultsAndStore(o, t, batchSize)
+		})
+
+		// get the results in batches again due to query computational limit
+		results := make([]uint64, sampleSize)
+		ProcessBatches(sampleSize, maxBatchSize, func(startIdx, batchSize int) {
+			tmpResults := GetResultsInRangeFromRandomResultStorage(
+				o,t,
+				startIdx,startIdx+batchSize,
+			)
+			copy(results[startIdx:], tmpResults)
+		})
+
+		assert.Equal(t, sampleSize, len(results))
+
+		// define a function that returns the next result within BasicDistributionTest
+		i := 0
 		uintf := func() (uint64, error) {
-			return GetNextUInt64NewPRGRandSalt(o, t, seed)
+			assert.Less(t, i, len(results))
+			result := results[i]
+			i++
+			return result, nil
 		}
 
+		// assertion of uniform distribution is done in BasicDistributionTest
 		random.BasicDistributionTest(t, uint64(n), uint64(classWidth), uintf)
 	})
 
