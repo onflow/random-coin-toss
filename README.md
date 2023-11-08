@@ -1,6 +1,6 @@
 # [WIP] Random Coin Toss
 
-> :warning: This repo is still a work in progress - the underlying RandomBeaconHistory is also still a work in progress
+> :warning: This repo is still a work in progress
 
 ## Overview
 
@@ -12,7 +12,7 @@ account at the end of every block. These random sources are catalogued chronolog
 associated block height to the initial commitment height.
 
 Used on their own, these random sources are not safe. In other words, using the random source in your contract without
-the framing of a commit-reveal mechanism would enable callers to condition their interactions with your contract on the
+the framing of a commit-reveal mechanism would enable non-trusted callers to condition their interactions with your contract on the
 random result. In the context of a random coin toss, I could revert my transaction if I didn't win - not a very fair
 game.
 
