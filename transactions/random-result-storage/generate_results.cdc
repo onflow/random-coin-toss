@@ -1,7 +1,9 @@
 import "Xorshift128plus"
 import "RandomResultStorage"
 
-/// This transaction is intended for project's statistical testing
+/// This contract & transaction is intended for this project's statistical testing which needs persistent PRG state
+/// across large numbers of random number generations.
+///
 /// Generates and adds the specified number of random numbers to the contract's result field, enabling continuous
 /// random number generation across an arbitrary number of transactions.
 ///
