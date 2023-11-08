@@ -1,6 +1,6 @@
-# Contributing to the Non-Fungible Token Standard
+# Contributing to the random-coin-toss repo
 
-The following is a set of guidelines for contributing to the Flow NFT standard. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to this Flow repository. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 #### Table Of Contents
 
@@ -19,7 +19,7 @@ The following is a set of guidelines for contributing to the Flow NFT standard. 
 
 ## How Can I Contribute?
 
-You are free to contribute however you want! You can submit a bug report in an issue, suggest an enhancment, or even just make a PR for us to review. We just ask that you are clear in your communication and documentation of all your work so we can understand how you are trying to help.
+You are free to contribute however you want! You can submit a bug report in an issue, suggest an enhancement, or even just make a PR for us to review. We just ask that you are clear in your communication and documentation of all your work so we can understand how you are trying to help.
 
 ### Reporting Bugs
 
