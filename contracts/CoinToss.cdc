@@ -94,7 +94,7 @@ access(all) contract CoinToss {
         let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
         assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
 
-        // instantiate a PRG object, seeding a source of randomness with and `salt` and returns a pseudo-random
+        // instantiate a PRG object, seeding a source of randomness with `salt` and returns a pseudo-random
         // generator object.
         let prg = Xorshift128plus.PRG(
                 sourceOfRandomness: sourceOfRandomness.value,
