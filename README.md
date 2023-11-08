@@ -1,6 +1,4 @@
-# [WIP] Random Coin Toss
-
-> :warning: This repo is still a work in progress
+# Random Coin Toss
 
 ## Overview
 
