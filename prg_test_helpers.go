@@ -35,7 +35,7 @@ func GetNextUInt64NewPRGWithSalt(
 
 	randResult := o.Script(
 		"xorshift128plus/next_uint64",
-		WithArg("seed", seed),
+		WithArg("sourceOfRandomness", seed),
 		WithArg("salt", salt),
 	)
 

@@ -20,7 +20,7 @@ func TestNextUInt64NewPRGOverflow(t *testing.T) {
 		n := 1 << (1 + mrand.Intn(10))
 		classWidth := (math.MaxUint64 / uint64(n)) + 1
 
-		// using the same seed, the salt varies in getNextUInt64()
+		// using the same seed, the salt is randomized in GetNextUInt64NewPRGRandSalt()
 		seed := GetRandomBytes(t, 32)
 
 		uintf := func() (uint64, error) {
