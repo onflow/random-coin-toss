@@ -15,6 +15,7 @@ access(all) contract CoinToss {
     access(self) let reserve: @FlowToken.Vault
 
     /// The canonical path for common Receipt storage
+    /// Note: production systems would consider handling path collisions
     access(all) let ReceiptStoragePath: StoragePath
 
     /* --- Events --- */
@@ -44,9 +45,9 @@ access(all) contract CoinToss {
                 betAmount: bet.balance
             )
         self.reserve.deposit(from: <-bet)
-        
+
         emit CoinTossBet(betAmount: receipt.betAmount, commitBlock: receipt.commitBlock, receiptID: receipt.uuid)
-        
+
         return <- receipt
     }
 
@@ -77,16 +78,16 @@ access(all) contract CoinToss {
             emit CoinTossReveal(betAmount: betAmount, winningAmount: 0.0, commitBlock: commitBlock, receiptID: receiptID)
             return <- FlowToken.createEmptyVault()
         }
-        
+
         let reward <- self.reserve.withdraw(amount: betAmount * 2.0)
-        
+
         emit CoinTossReveal(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
-        
+
         return <- reward
     }
 
     /// Helper method using RandomBeaconHistory to retrieve a source of randomness for a specific block height and the
-    /// given salt to instantiate a PRG object. A randomly generated UInt64 is then reduced by bitwise operation to 
+    /// given salt to instantiate a PRG object. A randomly generated UInt64 is then reduced by bitwise operation to
     /// UInt8 value of 1 or 0 and returned.
     ///
     access(all) fun randomCoin(atBlockHeight: UInt64, salt: UInt64): UInt8 {
@@ -103,7 +104,7 @@ access(all) contract CoinToss {
 
         // derive a 64-bit random using the PRG object and reduce to a UInt8 value of 1 or 0
         let rand = prg.nextUInt64()
-        
+
         return UInt8(rand & 1)
     }
 
@@ -113,7 +114,7 @@ access(all) contract CoinToss {
         self.reserve.deposit(
             from: <-seedVault.withdraw(amount: 1000.0)
         )
-    
+
         self.ReceiptStoragePath = StoragePath(identifier: "CoinTossReceipt_".concat(self.account.address.toString()))!
     }
 }
