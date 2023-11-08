@@ -19,17 +19,25 @@ func TestNextUInt64NewPRG(t *testing.T) {
 		// n is a random power of 2 (from 2 to 2^10)
 		n := 1 << (1 + mrand.Intn(10))
 		classWidth := (math.MaxUint64 / uint64(n)) + 1
+		var sampleSize int
 
-		seed := GetRandomBytes(t, 32)
-		salt := GetRandomBytes(t, 8)
-
-		// hardcoding here is fragile as it's determined within
-		// flow-go/crypto/rand_utils
-		sampleSize := n * 1000
-		maxBatchSize := 5000
+		// taken from BasicDistributionTest constants - hardcoding here is
+		/// fragile, but it's determined within flow-go/crypto/rand_utils
+		if n < 80 {
+			// but if `n` is too small, we use a "high enough" sample size
+			// If n is small, use a sample size just under 85000
+			sampleSize = (85000 / n) * n // highest multiple of n less than 80000
+		} else {
+			// If n is 80 or larger, use a sample size that is n * 1000
+			sampleSize = n * 1000
+		}
 
 		// initialize PRG object in RandomResultStorage helper contract
+		seed := GetRandomBytes(t, 32)
+		salt := GetRandomBytes(t, 8)
 		InitializePRG(o, t, seed, salt)
+
+		maxBatchSize := 5000
 		// generate results in batches due to transaction computational limit
 		ProcessBatches(sampleSize, maxBatchSize, func(startIdx, batchSize int) {
 			GenerateResultsAndStore(o, t, batchSize)
@@ -39,8 +47,8 @@ func TestNextUInt64NewPRG(t *testing.T) {
 		results := make([]uint64, sampleSize)
 		ProcessBatches(sampleSize, maxBatchSize, func(startIdx, batchSize int) {
 			tmpResults := GetResultsInRangeFromRandomResultStorage(
-				o,t,
-				startIdx,startIdx+batchSize,
+				o, t,
+				startIdx, startIdx+batchSize,
 			)
 			copy(results[startIdx:], tmpResults)
 		})
