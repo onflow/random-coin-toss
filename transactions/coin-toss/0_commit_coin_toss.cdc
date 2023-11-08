@@ -2,6 +2,8 @@ import "FlowToken"
 
 import "CoinToss"
 
+/// Commits the defined amount of Flow as a bet to the CoinToss contract, saving the returned Receipt to storage
+///
 transaction(betAmount: UFix64) {
 
     prepare(signer: AuthAccount) {
@@ -18,6 +20,7 @@ transaction(betAmount: UFix64) {
         }
 
         // Save that receipt to my storage
+        // Note: production systems would consider handling path collisions
         signer.save(<-receipt, to: CoinToss.ReceiptStoragePath)
     }
 }
