@@ -2,7 +2,6 @@ package test
 
 import (
 	"crypto/rand"
-	"encoding/binary"
 	"testing"
 
 	. "github.com/bjartek/overflow"
@@ -10,19 +9,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// calls a script which creates a new PRG resource from the given seed and
+// calls a script which creates a new PRG struct from the given seed and
 // random salt, gets the next uint64 and destroys the prg resource before
 // returning the next uint64
-func GetNextUInt64NewPRG(
+func GetNextUInt64NewPRGRandSalt(
 	o *OverflowState,
 	t *testing.T,
 	seed []byte,
 ) (uint64, error) {
 
+	return GetNextUInt64NewPRGWithSalt(
+		o,
+		t,
+		seed,
+		GetRandomBytes(t, 8),
+	)
+}
+
+func GetNextUInt64NewPRGWithSalt(
+	o *OverflowState,
+	t *testing.T,
+	seed []byte,
+	salt []byte,
+) (uint64, error) {
+
 	randResult := o.Script(
-		"pseudo-random-generator/next_uint64_new_prg",
+		"xorshift128plus/next_uint64",
 		WithArg("seed", seed),
-		WithArg("salt", GetRandomSalt(t)),
+		WithArg("salt", salt),
 	)
 
 	require.NoError(t, randResult.Err)
@@ -30,24 +44,12 @@ func GetNextUInt64NewPRG(
 	return uint64(randResult.Result.(cadence.UInt64)), randResult.Err
 }
 
-// gets a random 32 byte array using crypto/rand
-func GetRandomSeed(t *testing.T) []byte {
-	buf := make([]byte, 32)
+// gets a random byte array using crypto/rand
+func GetRandomBytes(t *testing.T, len uint64) []byte {
+	buf := make([]byte, len)
 
 	_, err := rand.Read(buf)
 	require.NoError(t, err)
 
 	return buf
-}
-
-// gets a random uint64 using crypto/rand
-func GetRandomSalt(t *testing.T) uint64 {
-	var b [8]byte
-
-	_, err := rand.Read(b[:])
-	require.NoError(t, err)
-
-	value := binary.BigEndian.Uint64(b[:])
-
-	return value
 }

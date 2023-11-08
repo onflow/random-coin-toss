@@ -21,12 +21,42 @@ func TestNextUInt64NewPRGOverflow(t *testing.T) {
 		classWidth := (math.MaxUint64 / uint64(n)) + 1
 
 		// using the same seed, the salt varies in getNextUInt64()
-		seed := GetRandomSeed(t)
+		seed := GetRandomBytes(t, 32)
 
 		uintf := func() (uint64, error) {
-			return GetNextUInt64NewPRG(o, t, seed)
+			return GetNextUInt64NewPRGRandSalt(o, t, seed)
 		}
 
 		random.BasicDistributionTest(t, uint64(n), uint64(classWidth), uintf)
+	})
+
+	t.Run("Should generate different results given different seeds & same salt", func(t *testing.T) {
+
+		seed1 := GetRandomBytes(t, 32)
+		seed2 := GetRandomBytes(t, 32)
+		salt := GetRandomBytes(t, 8)
+
+		assert.NotEqual(t, seed1, seed2)
+
+		rand1, _ := GetNextUInt64NewPRGWithSalt(o, t, seed1, salt)
+		rand2, _ := GetNextUInt64NewPRGWithSalt(o, t, seed2, salt)
+
+		// assert that the results are different
+		assert.NotEqual(t, rand1, rand2)
+	})
+
+	t.Run("Should generate different results given same seed & different salt", func(t *testing.T) {
+
+		seed := GetRandomBytes(t, 32)
+		salt1 := GetRandomBytes(t, 8)
+		salt2 := GetRandomBytes(t, 8)
+
+		assert.NotEqual(t, salt1, salt2)
+
+		rand1, _ := GetNextUInt64NewPRGWithSalt(o, t, seed, salt1)
+		rand2, _ := GetNextUInt64NewPRGWithSalt(o, t, seed, salt2)
+
+		// assert that the results are different
+		assert.NotEqual(t, rand1, rand2)
 	})
 }
