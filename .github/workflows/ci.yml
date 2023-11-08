@@ -1,7 +1,9 @@
 name: CI
 
 on:
-  - pull_request
+  pull_request:
+    paths:
+      contract/Xorshift128plus.cdc
 
 jobs:
   build:
