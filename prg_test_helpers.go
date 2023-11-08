@@ -12,8 +12,7 @@ import (
 /* --- Scripts helpers --- */
 
 // calls a script which creates a new PRG struct from the given seed and
-// random salt, gets the next uint64 and destroys the prg resource before
-// returning the next uint64
+// random salt and gets the next uint64
 func GetNextUInt64NewPRGRandSalt(
 	o *OverflowState,
 	t *testing.T,
