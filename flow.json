@@ -1,4 +1,15 @@
 {
+	"emulators": {
+		"default": {
+			"port": 3569,
+			"serviceAccount": "emulator-account"
+		}
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
 	"contracts": {
 		"CoinToss": {
 			"source": "./contracts/CoinToss.cdc",
@@ -38,13 +49,14 @@
 				"testnet": "631e88ae7f1d7c20"
 			}
 		},
-		"Xorshift128plus": {
-			"source": "./contracts/Xorshift128plus.cdc",
+		"RandomBeaconHistory": {
+			"source": "./contracts/RandomBeaconHistory.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "0xe467b9dd11fa00df",
+				"testnet": "0x8c5303eaa26202d6"
 			}
 		},
-		"RandomBeaconHistory": "./contracts/RandomBeaconHistory.cdc",
 		"RandomResultStorage": "./contracts/utility/RandomResultStorage.cdc",
 		"ViewResolver": {
 			"source": "./contracts/utility/ViewResolver.cdc",
@@ -53,18 +65,13 @@
 				"mainnet": "1d7e57aa55817448",
 				"testnet": "631e88ae7f1d7c20"
 			}
+		},
+		"Xorshift128plus": {
+			"source": "./contracts/Xorshift128plus.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7"
+			}
 		}
-	},
-	"emulators": {
-		"default": {
-			"port": 3569,
-			"serviceAccount": "emulator-account"
-		}
-	},
-	"networks": {
-		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
 		"emulator-account": {
