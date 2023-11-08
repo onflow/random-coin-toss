@@ -35,8 +35,8 @@ access(all) contract Xorshift128plus {
             let seed: [UInt8] = hash.slice(from: 0, upTo: 16)
 
             // Convert the seed bytes to two Word64 values for state initialization
-            let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 0)
-            let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: sourceOfRandomness, start: 8)
+            let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 0)
+            let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 8)
 
             self.state0 = segment0
             self.state1 = segment1
@@ -73,7 +73,7 @@ access(all) contract Xorshift128plus {
     ///
     access(contract) fun bigEndianBytesToWord64(bytes: [UInt8], start: Int): Word64 {
         pre {
-            start + 8 < bytes.length: "At least 8 bytes from the start are required for conversion"
+            start + 8 <= bytes.length: "At least 8 bytes from the start are required for conversion"
         }
         var value: UInt64 = 0
         var i: Int = 0
