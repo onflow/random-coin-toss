@@ -1,21 +1,16 @@
 {
-	"networks": {
-		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"testnet": "access.devnet.nodes.onflow.org:9000"
-	},
 	"contracts": {
 		"CoinToss": "./contracts/CoinToss.cdc",
 		"FlowToken": {
 			"source": "./contracts/utility/FlowToken.cdc",
 			"aliases": {
-				"emulator": "0x0ae53cb6e3f42a79"
+				"emulator": "0ae53cb6e3f42a79"
 			}
 		},
 		"FungibleToken": {
 			"source": "./contracts/utility/FungibleToken.cdc",
 			"aliases": {
-				"emulator": "0xee82856bf20e2aa6"
+				"emulator": "ee82856bf20e2aa6"
 			}
 		},
 		"MetadataViews": {
@@ -30,14 +25,19 @@
 				"emulator": "f8d6e0586b0a20c7"
 			}
 		},
-		"PseudoRandomGenerator": "./contracts/PseudoRandomGenerator.cdc",
+		"Xorshift128plus": "./contracts/Xorshift128plus.cdc",
 		"RandomBeaconHistory": "./contracts/RandomBeaconHistory.cdc",
 		"ViewResolver": {
+			"source": "./contracts/utility/ViewResolver.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7"
-			},
-			"source": "./contracts/utility/ViewResolver.cdc"
+			}
 		}
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
 		"emulator-account": {
@@ -52,7 +52,7 @@
 				"MetadataViews",
 				"ViewResolver",
 				"RandomBeaconHistory",
-				"PseudoRandomGenerator",
+				"Xorshift128plus",
 				"CoinToss"
 			]
 		}

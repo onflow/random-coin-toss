@@ -1,13 +1,29 @@
+import "FungibleToken"
 import "FlowToken"
-import "RandomBeaconHistory"
-import "PseudoRandomGenerator"
 
+import "RandomBeaconHistory"
+import "Xorshift128plus"
+
+/// CoinToss is a simple game contract showcasing the safe use of onchain randomness by way of a commit-reveal sheme.
+///
+/// See FLIP 123 for more details: https://github.com/onflow/flips/blob/main/protocol/20230728-commit-reveal.md
+/// And the onflow/random-coin-toss repo for implementation context: https://github.com/onflow/random-coin-toss
+///
 access(all) contract CoinToss {
 
+    /// The Vault used by the contract to store funds.
     access(self) let reserve: @FlowToken.Vault
 
-    access(self) let ReceiptStoragePath: StoragePath
+    /// The canonical path for common Receipt storage
+    access(all) let ReceiptStoragePath: StoragePath
 
+    /* --- Events --- */
+    //
+    access(all) event CoinTossBet(betAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event CoinTossReveal(betAmount: UFix64, winningAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+
+    /// The Receipt resource is used to store the bet amount and block height at which the bet was committed.
+    ///
     access(all) resource Receipt {
         access(all) let betAmount: UFix64
         access(all) let commitBlock: UInt64
@@ -18,53 +34,75 @@ access(all) contract CoinToss {
         }
     }
 
-    // PRG implementation is not provided by the FLIP, we assume this contract
-    // imports a suitable PRG implementation
-
-    access(all) fun commitCointoss(bet: @FlowToken.Vault): @Receipt {
+    /* --- Commit --- */
+    //
+    /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
+    /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
+    ///
+    access(all) fun commitCoinToss(bet: @FungibleToken.Vault): @Receipt {
         let receipt <- create Receipt(
                 betAmount: bet.balance
             )
-        // commit the bet
-        // `self.reserve` is a `@FlowToken.Vault` field defined on the app contract
-        //  and represents a pool of funds
         self.reserve.deposit(from: <-bet)
+        
+        emit CoinTossBet(betAmount: receipt.betAmount, commitBlock: receipt.commitBlock, receiptID: receipt.uuid)
+        
         return <- receipt
     }
 
-    access(all) fun revealCointoss(receipt: @Receipt): @FlowToken.Vault {
-        let currentBlock = getCurrentBlock().height
-        if receipt.commitBlock >= currentBlock {
-            panic("cannot reveal yet")
+    /* --- Reveal --- */
+    //
+    /// Here the caller provides the Receipt given to them at commitment. The contract then "flips a coin" with
+    /// randomCoin(), providing the committed block height and salting with the Receipts unique identifier.
+    /// If result is 1, user loses, if it's 0 the user doubles their bet. Note that the caller could condition the
+    /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
+    /// they do.
+    ///
+    access(all) fun revealCoinToss(receipt: @Receipt): @FungibleToken.Vault {
+        pre {
+            receipt.commitBlock <= getCurrentBlock().height: "Cannot reveal before commit block"
         }
 
-        let winnings = receipt.betAmount * 2.0
+        let betAmount = receipt.betAmount
+        let commitBlock = receipt.commitBlock
+        let receiptID = receipt.uuid
+
+        // self.randomCoin() errors if commitBlock <= current block height in call to
+		// RandomBeaconHistory.sourceOfRandomness()
         let coin = self.randomCoin(atBlockHeight: receipt.commitBlock, salt: receipt.uuid)
+
         destroy receipt
 
         if coin == 1 {
-            return <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
+            emit CoinTossReveal(betAmount: betAmount, winningAmount: 0.0, commitBlock: commitBlock, receiptID: receiptID)
+            return <- FlowToken.createEmptyVault()
         }
-
-        return <- (self.reserve.withdraw(amount: winnings) as! @FlowToken.Vault)
+        
+        let reward <- self.reserve.withdraw(amount: betAmount * 2.0)
+        
+        emit CoinTossReveal(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
+        
+        return <- reward
     }
 
+    /// Helper method using RandomBeaconHistory to retrieve a source of randomness for a specific block height and the
+    /// given salt to instantiate a PRG object. A randomly generated UInt64 is then reduced by bitwise operation to 
+    /// UInt8 value of 1 or 0 and returned.
+    ///
     access(all) fun randomCoin(atBlockHeight: UInt64, salt: UInt64): UInt8 {
-        // query the Random Beacon history core-contract.
-        // if `blockHeight` is the current block height, `sourceOfRandomness` errors.
+        // query the Random Beacon history core-contract - if `blockHeight` <= current block height, panic & revert
         let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
         assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
 
-        // instantiate a PRG object using external `createPRG` that takes a `seed` 
-        // and `salt` and returns a pseudo-random-generator object.
-        let prg <- PseudoRandomGenerator.createPRG(
+        // instantiate a PRG object, seeding a source of randomness with `salt` and returns a pseudo-random
+        // generator object.
+        let prg = Xorshift128plus.PRG(
                 sourceOfRandomness: sourceOfRandomness.value,
-                salt: salt
+                salt: salt.toBigEndianBytes()
             )
 
-        // derive a 64-bit random using the object `prg`
+        // derive a 64-bit random using the PRG object and reduce to a UInt8 value of 1 or 0
         let rand = prg.nextUInt64()
-        destroy prg
         
         return UInt8(rand & 1)
     }
@@ -73,9 +111,9 @@ access(all) contract CoinToss {
         self.reserve <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
         let seedVault = self.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
         self.reserve.deposit(
-            from: <-seedVault.withdraw(amount: 100.0)
+            from: <-seedVault.withdraw(amount: 1000.0)
         )
     
-        self.ReceiptStoragePath = /storage/CoinTossReceipt
+        self.ReceiptStoragePath = StoragePath(identifier: "CoinTossReceipt_".concat(self.account.address.toString()))!
     }
 }
