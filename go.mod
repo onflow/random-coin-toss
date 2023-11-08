@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bjartek/overflow v1.14.1
 	github.com/onflow/cadence v0.42.2
-	github.com/onflow/flow-go/crypto v0.24.9
+	github.com/onflow/flow-go/crypto v0.24.10
 	github.com/stretchr/testify v1.8.4
 )
 
