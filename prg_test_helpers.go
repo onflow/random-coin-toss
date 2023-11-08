@@ -134,7 +134,7 @@ func GetRandomBytes(t *testing.T, len uint64) []byte {
 // processes a task in batches
 func ProcessBatches(totalSize, maxBatchSize int, processFunc func(startIdx, batchSize int)) {
 	for startIdx := 0; startIdx < totalSize; startIdx += maxBatchSize {
-		batchSize := Min(maxBatchSize, totalSize-startIdx)
+		batchSize := min(maxBatchSize, totalSize-startIdx)
 		processFunc(startIdx, batchSize)
 	}
 }
