@@ -56,7 +56,7 @@ To achieve non-revertible randomness, the contract should be structured to resol
    inputs, whose output all parties committed to accept in the previous phase.
 
 Though a caller could still condition the revealing transaction on the coin flip result, all the inputs influencing the bet's outcome
-have already been fixed (the source of randomness being the last one that is only generated after the commit transaction concluded.)
+have already been fixed (the source of randomness being the last one that is only generated after the commit transaction concluded).
 Conceptually, this corresponds to owning a winning (or loosing) lottery ticket, where the numbers have already been published,
 but the ticket has not been handed in to the lottery company to affirm the win (or loss).
 All that the resolving transaction (reveal phase) is doing is affirming the win or loss.
