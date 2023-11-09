@@ -63,8 +63,13 @@ All that the resolving transaction (reveal phase) is doing is affirming the win 
 The ticket owner could revert their resolving transaction. Though that does not change whether the ticket won or lost. Furthermore, the player has already
 incurred the cost of their bet and gains nothing by reverting the reveal step.
 
-## References
+## Further Reading 
 
-- [Secure Random Number Generator Forum Post](https://forum.onflow.org/t/secure-random-number-generator-for-flow-s-smart-contracts/5110)
-- [RandomBeaconHistory PR - flow-core-contracts](https://github.com/onflow/flow-core-contracts/pull/375)
-- [FLIP: On-Chain randomness history for commit-reveal schemes](https://github.com/onflow/flips/pull/123)
+
+- We recommend the **Flow developer documentation** [**_Advanced Concepts → Flow VRF_**](https://developers.flow.com/build/advanced-concepts/randomness)
+  for important concepts and context on safely using Flow's VRF.  
+- Flow Forum post [_Secure random number generator for Flow’s smart contracts_](https://forum.onflow.org/t/secure-random-number-generator-for-flow-s-smart-contracts/5110)
+  summarizes the weaknesses of prevalent approaches to random number generation in other blockchains (such as using block hashes) and explains the details behind Flow's secure solution.
+- [Pull request introducing the `RandomBeaconHistory` system smart contract.](https://github.com/onflow/flow-core-contracts/pull/375) 
+- [FLIP 123: _On-Chain randomness history for commit-reveal schemes_](https://github.com/onflow/flips/pull/123) describes the need for a commit-and-reveal scheme and 
+  discusses ideas for additional convenience functionality to further optimize the developer experience in the future.
