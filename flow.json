@@ -81,6 +81,14 @@
 		"emulator-alice": {
 			"address": "0x01cf0e2f2f715450",
 			"key": "1a05ba433be5af2988e814d1e4fa08f1574140e6cb5649a861cc6377718c51be"
+		},
+		"tooling-testnet": {
+			"address": "0xed24dbe901028c5c",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-flow-admin/locations/global/keyRings/flow-tooling-testnet/cryptoKeys/flow-tooling-testnet-key/cryptoKeyVersions/1"
+			}
 		}
 	},
 	"deployments": {
