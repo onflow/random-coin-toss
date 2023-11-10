@@ -1,20 +1,10 @@
 {
-	"emulators": {
-		"default": {
-			"port": 3569,
-			"serviceAccount": "emulator-account"
-		}
-	},
-	"networks": {
-		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"testnet": "access.devnet.nodes.onflow.org:9000"
-	},
 	"contracts": {
 		"CoinToss": {
 			"source": "./contracts/CoinToss.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "d1299e755e8be5e7"
 			}
 		},
 		"FlowToken": {
@@ -53,8 +43,8 @@
 			"source": "./contracts/RandomBeaconHistory.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "0xe467b9dd11fa00df",
-				"testnet": "0x8c5303eaa26202d6"
+				"mainnet": "e467b9dd11fa00df",
+				"testnet": "8c5303eaa26202d6"
 			}
 		},
 		"RandomResultStorage": "./contracts/utility/RandomResultStorage.cdc",
@@ -69,18 +59,40 @@
 		"Xorshift128plus": {
 			"source": "./contracts/Xorshift128plus.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "ed24dbe901028c5c"
 			}
 		}
 	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
 	"accounts": {
+		"coin-toss-testnet": {
+			"address": "d1299e755e8be5e7",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-flow-admin/locations/global/keyRings/flow-tooling-testnet/cryptoKeys/flow-tooling-testnet-key/cryptoKeyVersions/1"
+			}
+		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
 		},
 		"emulator-alice": {
-			"address": "0x01cf0e2f2f715450",
+			"address": "01cf0e2f2f715450",
 			"key": "1a05ba433be5af2988e814d1e4fa08f1574140e6cb5649a861cc6377718c51be"
+		},
+		"tooling-testnet": {
+			"address": "ed24dbe901028c5c",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-flow-admin/locations/global/keyRings/flow-tooling-testnet/cryptoKeys/flow-tooling-testnet-key/cryptoKeyVersions/1"
+			}
 		}
 	},
 	"deployments": {
@@ -93,6 +105,14 @@
 				"Xorshift128plus",
 				"CoinToss",
 				"RandomResultStorage"
+			]
+		},
+		"testnet": {
+			"coin-toss-testnet": [
+				"CoinToss"
+			],
+			"tooling-testnet": [
+				"Xorshift128plus"
 			]
 		}
 	}
