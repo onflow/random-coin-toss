@@ -18,7 +18,6 @@ func GetNextUInt64NewPRGRandSalt(
 	t *testing.T,
 	seed []byte,
 ) (uint64, error) {
-
 	return GetNextUInt64NewPRGWithSalt(
 		o,
 		t,
@@ -34,16 +33,19 @@ func GetNextUInt64NewPRGWithSalt(
 	seed []byte,
 	salt []byte,
 ) (uint64, error) {
+	t.Helper()
 
-	randResult := o.Script(
+	var value uint64
+	err := o.Script(
 		"xorshift128plus/next_uint64",
 		WithArg("sourceOfRandomness", seed),
 		WithArg("salt", salt),
-	)
+	).MarshalAs(value)
 
-	require.NoError(t, randResult.Err)
+	require.NoError(t, err)
 
-	return uint64(randResult.Result.(cadence.UInt64)), randResult.Err
+	// TODO: why do you return err here?
+	return value, err
 }
 
 // gets the results array from RandomResultStorage contract
@@ -51,15 +53,10 @@ func GetResultsFromRandomResultStorage(
 	o *OverflowState,
 	t *testing.T,
 ) []uint64 {
-
-	results := o.Script("random-result-storage/get_results")
-
-	require.NoError(t, results.Err)
-
+	t.Helper()
 	var uint64Array []uint64
-	for _, value := range results.Result.(cadence.Array).Values {
-		uint64Array = append(uint64Array, uint64(value.(cadence.UInt64)))
-	}
+	err := o.Script("random-result-storage/get_results").MarshalAs(uint64Array)
+	require.NoError(t, err)
 	return uint64Array
 }
 
@@ -70,7 +67,6 @@ func GetResultsInRangeFromRandomResultStorage(
 	from int,
 	upTo int,
 ) []uint64 {
-
 	results := o.Script(
 		"random-result-storage/get_results_in_range",
 		WithArg("from", from),
@@ -94,7 +90,6 @@ func GenerateResultsAndStore(
 	t *testing.T,
 	length int,
 ) {
-
 	o.Tx(
 		"random-result-storage/generate_results",
 		WithSignerServiceAccount(),
@@ -109,7 +104,6 @@ func InitializePRG(
 	seed []byte,
 	salt []byte,
 ) {
-
 	o.Tx(
 		"random-result-storage/initialize_prg",
 		WithSignerServiceAccount(),
