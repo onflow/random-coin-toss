@@ -3,7 +3,8 @@
 		"CoinToss": {
 			"source": "./contracts/CoinToss.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"testnet": "d1299e755e8be5e7"
 			}
 		},
 		"FlowToken": {
@@ -69,6 +70,14 @@
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
+		"coin-toss-testnet": {
+			"address": "d1299e755e8be5e7",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-flow-admin/locations/global/keyRings/flow-tooling-testnet/cryptoKeys/flow-tooling-testnet-key/cryptoKeyVersions/1"
+			}
+		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
@@ -99,6 +108,9 @@
 			]
 		},
 		"testnet": {
+			"coin-toss-testnet": [
+				"CoinToss"
+			],
 			"tooling-testnet": [
 				"Xorshift128plus"
 			]
