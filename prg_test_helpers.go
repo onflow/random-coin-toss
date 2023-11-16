@@ -39,7 +39,7 @@ func GetNextUInt64NewPRGWithSalt(
 		"test/next_uint64",
 		WithArg("sourceOfRandomness", seed),
 		WithArg("salt", salt),
-	).MarshalAs(value)
+	).MarshalAs(&value)
 
 	require.NoError(t, err)
 
@@ -54,7 +54,7 @@ func GetResultsFromRandomResultStorage(
 ) []uint64 {
 	t.Helper()
 	var uint64Array []uint64
-	err := o.Script("test/get_results").MarshalAs(uint64Array)
+	err := o.Script("test/get_results").MarshalAs(&uint64Array)
 	require.NoError(t, err)
 	return uint64Array
 }
@@ -73,7 +73,7 @@ func GetResultsInRangeFromRandomResultStorage(
 		"test/get_results_in_range",
 		WithArg("from", from),
 		WithArg("upTo", upTo),
-	).MarshalAs(uint64Array)
+	).MarshalAs(&uint64Array)
 	require.NoError(t, err)
 
 	return uint64Array
