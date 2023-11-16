@@ -4,6 +4,6 @@ import "Xorshift128plus"
 ///
 /// Note that if the PRG were stored onchain, this script would not advance the state of the PRG
 ///
-pub fun main(sourceOfRandomness: [UInt8], salt: [UInt8]): UInt64 {
+access(all) fun main(sourceOfRandomness: [UInt8], salt: [UInt8]): UInt64 {
     return Xorshift128plus.PRG(sourceOfRandomness: sourceOfRandomness, salt: salt).nextUInt64()
 }
