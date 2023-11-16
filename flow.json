@@ -1,7 +1,7 @@
 {
 	"contracts": {
 		"CoinToss": {
-			"source": "./contracts/example/CoinToss.cdc",
+			"source": "./contracts/CoinToss.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"testnet": "d1299e755e8be5e7"
@@ -57,7 +57,7 @@
 			}
 		},
 		"Xorshift128plus": {
-			"source": "./contracts/example/Xorshift128plus.cdc",
+			"source": "./contracts/Xorshift128plus.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"testnet": "ed24dbe901028c5c"
