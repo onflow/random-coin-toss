@@ -26,6 +26,7 @@ access(all) contract Xorshift128plus {
         init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
                 sourceOfRandomness.length >= 16: "At least 16 bytes of entropy should be used"
+                Xorshift128plus.isNotZeroArray(sourceOfRandomness): "Source of randomness cannot be all zeros"
             }
 
             let tmp: [UInt8] = sourceOfRandomness.concat(salt)
@@ -82,5 +83,16 @@ access(all) contract Xorshift128plus {
             i = i + 1
         }
         return Word64(value)
+    }
+
+    /// Ensures the source of randomness is not all zeros which would result in a random cycle with length of 1
+    ///
+    access(contract) fun isNotZeroArray(_ sourceOfRandomness: [UInt8]): Bool {
+        for byte in sourceOfRandomness {
+            if byte != 0 {
+                return true
+            }
+        }
+        return false
     }
 }
