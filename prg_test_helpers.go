@@ -36,10 +36,10 @@ func GetNextUInt64NewPRGWithSalt(
 
 	var value uint64
 	err := o.Script(
-		"xorshift128plus/next_uint64",
+		"test/next_uint64",
 		WithArg("sourceOfRandomness", seed),
 		WithArg("salt", salt),
-	).MarshalAs(value)
+	).MarshalAs(&value)
 
 	require.NoError(t, err)
 
@@ -54,7 +54,7 @@ func GetResultsFromRandomResultStorage(
 ) []uint64 {
 	t.Helper()
 	var uint64Array []uint64
-	err := o.Script("random-result-storage/get_results").MarshalAs(uint64Array)
+	err := o.Script("test/get_results").MarshalAs(&uint64Array)
 	require.NoError(t, err)
 	return uint64Array
 }
@@ -70,10 +70,10 @@ func GetResultsInRangeFromRandomResultStorage(
 
 	var uint64Array []uint64
 	err := o.Script(
-		"random-result-storage/get_results_in_range",
+		"test/get_results_in_range",
 		WithArg("from", from),
 		WithArg("upTo", upTo),
-	).MarshalAs(uint64Array)
+	).MarshalAs(&uint64Array)
 	require.NoError(t, err)
 
 	return uint64Array
@@ -89,7 +89,7 @@ func GenerateResultsAndStore(
 ) {
 	t.Helper()
 	o.Tx(
-		"random-result-storage/generate_results",
+		"test/generate_results",
 		WithSignerServiceAccount(),
 		WithArg("generationLength", length),
 	).AssertSuccess(t)
@@ -104,7 +104,7 @@ func InitializePRG(
 ) {
 	t.Helper()
 	o.Tx(
-		"random-result-storage/initialize_prg",
+		"test/initialize_prg",
 		WithSignerServiceAccount(),
 		WithArg("sourceOfRandomness", seed),
 		WithArg("salt", salt),

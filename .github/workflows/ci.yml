@@ -3,7 +3,9 @@ name: CI
 on:
   pull_request:
     paths:
-      contract/Xorshift128plus.cdc
+      - contract/Xorshift128plus.cdc
+      - prg_test.go
+      - prg_test_helpers.go
 
 jobs:
   build:

@@ -69,7 +69,7 @@ access(all) contract CoinToss {
         let receiptID = receipt.uuid
 
         // self.randomCoin() errors if commitBlock <= current block height in call to
-		// RandomBeaconHistory.sourceOfRandomness()
+        // RandomBeaconHistory.sourceOfRandomness()
         let coin = self.randomCoin(atBlockHeight: receipt.commitBlock, salt: receipt.uuid)
 
         destroy receipt
