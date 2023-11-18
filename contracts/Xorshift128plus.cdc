@@ -26,7 +26,6 @@ access(all) contract Xorshift128plus {
         init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
                 sourceOfRandomness.length >= 16: "At least 16 bytes of entropy should be used"
-                Xorshift128plus.isNotZeroArray(sourceOfRandomness): "Source of randomness cannot be all zeros"
             }
 
             let tmp: [UInt8] = sourceOfRandomness.concat(salt)
@@ -39,6 +38,9 @@ access(all) contract Xorshift128plus {
             let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 0)
             let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 8)
 
+            // Ensure the initial state is non-zero
+            assert(segment0 != 0 || segment1 != 0, message: "PRG initial state must be initialized as non-zero")
+            
             self.state0 = segment0
             self.state1 = segment1
         }
@@ -83,16 +85,5 @@ access(all) contract Xorshift128plus {
             i = i + 1
         }
         return Word64(value)
-    }
-
-    /// Ensures the source of randomness is not all zeros which would result in a random cycle with length of 1
-    ///
-    access(contract) fun isNotZeroArray(_ sourceOfRandomness: [UInt8]): Bool {
-        for byte in sourceOfRandomness {
-            if byte != 0 {
-                return true
-            }
-        }
-        return false
     }
 }

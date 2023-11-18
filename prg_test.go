@@ -104,13 +104,6 @@ func TestNextUInt64NewPRG(t *testing.T) {
 		assert.NotEqual(t, rand1, rand2)
 	})
 
-	t.Run("Should fail PRG init with zero array", func(t *testing.T) {
-
-		_, err := GetNextUInt64NewPRGRandSalt(o, t, make([]byte, 16))
-
-		assert.Error(t, err)
-	})
-
 	t.Run("Should fail PRG init with array.length < 16", func(t *testing.T) {
 
 		_, err := GetNextUInt64NewPRGRandSalt(o, t, GetRandomBytes(t, 15))
