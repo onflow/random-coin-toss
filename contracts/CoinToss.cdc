@@ -9,6 +9,8 @@ import "Xorshift128plus"
 /// See FLIP 123 for more details: https://github.com/onflow/flips/blob/main/protocol/20230728-commit-reveal.md
 /// And the onflow/random-coin-toss repo for implementation context: https://github.com/onflow/random-coin-toss
 ///
+/// NOTE: This contract is for demonstration purposes only and is not intended to be used in a production environment.
+///
 access(all) contract CoinToss {
 
     /// The Vault used by the contract to store funds.
