@@ -8,6 +8,7 @@ import (
 	. "github.com/bjartek/overflow"
 	"github.com/onflow/flow-go/crypto/random"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNextUInt64NewPRG(t *testing.T) {
@@ -46,8 +47,7 @@ func TestNextUInt64NewPRG(t *testing.T) {
 		// get the results in batches again due to query computational limit
 		results := make([]uint64, sampleSize)
 		ProcessBatches(sampleSize, maxBatchSize, func(startIdx, batchSize int) {
-			tmpResults := GetResultsInRangeFromRandomResultStorage(
-				o, t,
+			tmpResults := GetResultsInRangeFromRandomResultStorage(o, t,
 				startIdx, startIdx+batchSize,
 			)
 			copy(results[startIdx:], tmpResults)
@@ -76,8 +76,11 @@ func TestNextUInt64NewPRG(t *testing.T) {
 
 		assert.NotEqual(t, seed1, seed2)
 
-		rand1, _ := GetNextUInt64NewPRGWithSalt(o, t, seed1, salt)
-		rand2, _ := GetNextUInt64NewPRGWithSalt(o, t, seed2, salt)
+		rand1, err1 := GetNextUInt64NewPRGWithSalt(o, t, seed1, salt)
+		rand2, err2 := GetNextUInt64NewPRGWithSalt(o, t, seed2, salt)
+
+		require.NoError(t, err1)
+		require.NoError(t, err2)
 
 		// assert that the results are different
 		assert.NotEqual(t, rand1, rand2)
@@ -91,10 +94,20 @@ func TestNextUInt64NewPRG(t *testing.T) {
 
 		assert.NotEqual(t, salt1, salt2)
 
-		rand1, _ := GetNextUInt64NewPRGWithSalt(o, t, seed, salt1)
-		rand2, _ := GetNextUInt64NewPRGWithSalt(o, t, seed, salt2)
+		rand1, err1 := GetNextUInt64NewPRGWithSalt(o, t, seed, salt1)
+		rand2, err2 := GetNextUInt64NewPRGWithSalt(o, t, seed, salt2)
+
+		require.NoError(t, err1)
+		require.NoError(t, err2)
 
 		// assert that the results are different
 		assert.NotEqual(t, rand1, rand2)
+	})
+
+	t.Run("Should fail PRG init with array.length < 16", func(t *testing.T) {
+
+		_, err := GetNextUInt64NewPRGRandSalt(o, t, GetRandomBytes(t, 15))
+
+		assert.Error(t, err)
 	})
 }

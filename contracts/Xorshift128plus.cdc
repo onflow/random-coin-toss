@@ -38,6 +38,9 @@ access(all) contract Xorshift128plus {
             let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 0)
             let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 8)
 
+            // Ensure the initial state is non-zero
+            assert(segment0 != 0 || segment1 != 0, message: "PRG initial state must be initialized as non-zero")
+            
             self.state0 = segment0
             self.state1 = segment1
         }

@@ -41,9 +41,6 @@ func GetNextUInt64NewPRGWithSalt(
 		WithArg("salt", salt),
 	).MarshalAs(&value)
 
-	require.NoError(t, err)
-
-	// TODO: why do you return err here?
 	return value, err
 }
 
