@@ -60,7 +60,8 @@
 			"source": "./contracts/Xorshift128plus.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testnet": "ed24dbe901028c5c"
+				"testnet": "ed24dbe901028c5c",
+				"mainnet": "45caec600164c9e6"
 			}
 		}
 	},
@@ -82,9 +83,13 @@
 			"address": "f8d6e0586b0a20c7",
 			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
 		},
-		"emulator-alice": {
-			"address": "01cf0e2f2f715450",
-			"key": "1a05ba433be5af2988e814d1e4fa08f1574140e6cb5649a861cc6377718c51be"
+		"tooling-mainnet": {
+			"address": "45caec600164c9e6",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-flow-admin/locations/global/keyRings/flow-tooling-mainnet/cryptoKeys/flow-tooling-mainnet-key/cryptoKeyVersions/1"
+			}
 		},
 		"tooling-testnet": {
 			"address": "ed24dbe901028c5c",
@@ -105,6 +110,11 @@
 				"Xorshift128plus",
 				"CoinToss",
 				"RandomResultStorage"
+			]
+		},
+		"mainnet": {
+			"tooling-mainnet": [
+				"Xorshift128plus"
 			]
 		},
 		"testnet": {
