@@ -63,6 +63,13 @@ All that the resolving transaction (reveal phase) is doing is affirming the win 
 The ticket owner could revert their resolving transaction. Though that does not change whether the ticket won or lost. Furthermore, the player has already
 incurred the cost of their bet and gains nothing by reverting the reveal step.
 
+## Deployments
+
+|Contract|Testnet|Mainnet|
+|---|---|---|
+|[CoinToss](./contracts/CoinToss.cdc)|[0xd1299e755e8be5e7](https://contractbrowser.com/A.d1299e755e8be5e7.CoinToss)|N/A|
+|[Xorshift128plus](./contracts/Xorshift128plus.cdc)|[0xed24dbe901028c5c](https://contractbrowser.com/A.ed24dbe901028c5c.Xorshift128plus)|[0x45caec600164c9e6](https://contractbrowser.com/A.45caec600164c9e6.Xorshift128plus)|
+
 ## Further Reading 
 
 
