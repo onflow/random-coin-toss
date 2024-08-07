@@ -139,7 +139,8 @@
 		"emulator": {
 			"emulator-account": [
 				"Xorshift128plus",
-				"CoinToss"
+				"CoinToss",
+				"RandomResultStorage"
 			]
 		},
 		"mainnet": {
