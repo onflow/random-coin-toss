@@ -42,7 +42,11 @@ access(all) contract CoinToss {
     /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
     /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
     ///
-    access(all) fun commitCoinToss(bet: @FungibleToken.Vault): @Receipt {
+    access(all) fun commitCoinToss(bet: @{FungibleToken.Vault}): @Receipt {
+        pre {
+            bet.balance > 0.0: "Bet amount must be greater than 0"
+            bet.getType() == Type<@FlowToken.Vault>(): "Bet must be of type FlowToken.Vault"
+        }
         let receipt <- create Receipt(
                 betAmount: bet.balance
             )
@@ -61,7 +65,7 @@ access(all) contract CoinToss {
     /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
     /// they do.
     ///
-    access(all) fun revealCoinToss(receipt: @Receipt): @FungibleToken.Vault {
+    access(all) fun revealCoinToss(receipt: @Receipt): @{FungibleToken.Vault} {
         pre {
             receipt.commitBlock <= getCurrentBlock().height: "Cannot reveal before commit block"
         }
@@ -78,7 +82,7 @@ access(all) contract CoinToss {
 
         if coin == 1 {
             emit CoinTossReveal(betAmount: betAmount, winningAmount: 0.0, commitBlock: commitBlock, receiptID: receiptID)
-            return <- FlowToken.createEmptyVault()
+            return <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
         }
 
         let reward <- self.reserve.withdraw(amount: betAmount * 2.0)
@@ -111,8 +115,10 @@ access(all) contract CoinToss {
     }
 
     init() {
-        self.reserve <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
-        let seedVault = self.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
+        self.reserve <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
+        let seedVault = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(
+                from: /storage/flowTokenVault
+            )!
         self.reserve.deposit(
             from: <-seedVault.withdraw(amount: 1000.0)
         )
