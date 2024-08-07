@@ -8,8 +8,8 @@ import "RandomResultStorage"
 ///
 transaction(sourceOfRandomness: [UInt8], salt: [UInt8]) {
 
-    prepare(signer: AuthAccount) {
-        signer.borrow<&RandomResultStorage.Admin>(from: RandomResultStorage.STORAGE_PATH)
+    prepare(signer: auth(BorrowValue) &Account) {
+        signer.storage.borrow<&RandomResultStorage.Admin>(from: RandomResultStorage.STORAGE_PATH)
             ?.initializePRG(sourceOfRandomness: sourceOfRandomness, salt: salt)
             ?? panic("Signer is not admin for RandomResultStorage!")
     }

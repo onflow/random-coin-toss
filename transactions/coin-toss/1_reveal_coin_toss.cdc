@@ -6,9 +6,9 @@ import "CoinToss"
 ///
 transaction {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue, LoadValue) &Account) {
         // Load my receipt from storage
-        let receipt <- signer.load<@CoinToss.Receipt>(from: CoinToss.ReceiptStoragePath)
+        let receipt <- signer.storage.load<@CoinToss.Receipt>(from: CoinToss.ReceiptStoragePath)
             ?? panic("No Receipt found!")
 
         // Reveal by redeeming my receipt - fingers crossed!
@@ -16,7 +16,7 @@ transaction {
 
         if winnings.balance > 0.0 {
             // Deposit winnings into my FlowToken Vault
-            let flowVault = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
+            let flowVault = signer.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
             flowVault.deposit(from: <-winnings)
         } else {
             destroy winnings

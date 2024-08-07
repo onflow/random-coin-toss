@@ -9,8 +9,8 @@ import "RandomResultStorage"
 ///
 transaction(generationLength: Int) {
 
-    prepare(signer: AuthAccount) {
-        signer.borrow<&RandomResultStorage.Admin>(from: RandomResultStorage.STORAGE_PATH)
+    prepare(signer: auth(BorrowValue) &Account) {
+        signer.storage.borrow<&RandomResultStorage.Admin>(from: RandomResultStorage.STORAGE_PATH)
             ?.generateResults(length: generationLength)
             ?? panic("Signer is not admin for RandomResultStorage!")
     }

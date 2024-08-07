@@ -6,5 +6,5 @@ import "RandomResultStorage"
 /// Returns result array from the storage contract
 ///
 access(all) fun main(): [UInt64] {
-    return RandomResultStorage.results
+    return *RandomResultStorage.results
 }
