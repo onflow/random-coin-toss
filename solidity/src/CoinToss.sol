@@ -5,14 +5,14 @@ import "./CadenceRandomConsumer.sol";
 
 contract CoinToss is CadenceRandomConsumer {
     uint8 constant betMultiplier = 2;
-    
-    mapping (address => uint256) public coinTosses;
-    mapping (uint256 => uint256) public bets;
+
+    mapping(address => uint256) public coinTosses;
+    mapping(uint256 => uint256) public bets;
 
     function flipCoin() public payable {
+        require(msg.value > 0, "Must send ETH to place a bet");
         uint256 requestId = _requestRandomness();
         coinTosses[msg.sender] = requestId;
-        // get the value of the bet from the transaction
         bets[requestId] = msg.value;
     }
 
