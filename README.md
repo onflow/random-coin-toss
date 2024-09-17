@@ -1,20 +1,22 @@
 # Random Coin Toss
 
-While both are backed by Flow's Random Beacon,
+> :information_source: This repository contains demonstrations for safe usage of Flow's protocol-native secure randomness in both Cadence and Solidity smart contracts.
+
+On Flow, there are two routes to get a random value. While both are backed by Flow's Random Beacon,
 it is important for developers to mindfully choose between `revertibleRandom`
 or seeding their own PRNG utilizing the `RandomBeaconHistory` smart contract:
 
-- Under the hood, the FVM also just instantiates a PRNG for each transaction that `revertibleRandom` draws from. 
-  Though, with `revertibleRandom` a developer is calling the PRNG that is controlled by the transaction,
-  which also has the power to abort and revert if it doesn't like `revertibleRandom`'s outputs.
-  `revertibleRandom` is only suitable for smart contract functions that exclusively run within the trusted transactions.
-- In contrast, using the `RandomBeaconHistory` means to use a deterministically-seeded PRNG. 
-  The `RandomBeaconHistory` is key for effectively implementing a commit-and-reveal scheme.
-  During the commit phase, the user commits to proceed with a future source of randomness,
-  which is revealed after the commit transaction concluded.
-  For each block, the `RandomBeaconHistory` automatically stores the subsequently generated source of randomness.
+- Under the hood, the FVM instantiates a PRNG for each transaction from which `revertibleRandom` generates random numbers. 
+  However, when using `revertibleRandom` a developer is relying on the PRNG that is controlled by the transaction,
+  which also has the power to abort and revert based on `revertibleRandom`'s outputs. Therefore,
+  `revertibleRandom` is only suitable for smart contract functions that exclusively run within credibly-neutral transactions which a developer can trust won't revert based on undesirable random outputs.
+- In contrast, using the `RandomBeaconHistory` allows developers to use a deterministically-seeded PRNG. 
+  The `RandomBeaconHistory` is key for effectively implementing a commit-and-reveal scheme which is itself a pattern that prevents users from gaming a transaction based on the result of randomness.
+  During the commit phase, the user commits to proceed with a **future** source of randomness
+  which is revealed after the commit transaction concludes.
+  For each block, the `RandomBeaconHistory` automatically stores the subsequently generated source of randomness in the final transaction of that block. This source of randomness is committed by Flow's protocol service account.
 
-> 🚨 A transaction can atomically revert all its action during its runtime and abort.
+> 🚨 A transaction can atomically revert the entirety of its action based on results exposed within the scope of that transaction.
 > Therefore, it is possible for a transaction calling into your smart contract to post-select favorable
 > results and revert the transaction for unfavorable results.
 > 
@@ -24,8 +26,7 @@ or seeding their own PRNG utilizing the `RandomBeaconHistory` smart contract:
 > 
 > ✅ Utilizing a commit-and-reveal scheme is important for developers to protect their smart contracts from transaction post-selection attacks.
 
-
-Via a commit-and-reveal scheme, flow's native secure randomness can be safely used within Cadence smart contracts 
+Via a commit-and-reveal scheme, Flow's protocol-native secure randomness can be safely used within both Cadence and Solidity smart contracts 
 when contracts are transacted on by untrusted parties. 
 By providing examples of commit-reveal implementations we hope to foster a more secure ecosystem of decentralized
 applications and encourage developers to build with best practices.
@@ -36,11 +37,11 @@ The contracts contained in this repo demonstrate how to use Flow's onchain rando
 in contracts that are transacted on by untrusted parties. Safe randomness here meaning non-revertible randomness, 
 i.e. mitigating post-selection attacks via a commit-and-reveal scheme.
 
-Random sources are committed to the [`RandomBeaconHistory` contract](./contracts/RandomBeaconHistory.cdc) by the service
+Random sources are committed to the [`RandomBeaconHistory` contract](https://github.com/onflow/flow-core-contracts/blob/master/contracts/RandomBeaconHistory.cdc) by the service
 account at the end of every block. The RandomBeaconHistory contract provides a convenient archive, where for each past
 block height (starting Nov 2023) the respective 'source of randomness' can be retrieved.
 
-When used naively, `revertibleRandom` as well as the [`RandomBeaconHistory` contract](./contracts/RandomBeaconHistory.cdc)
+When used naively, `revertibleRandom` as well as the [`RandomBeaconHistory` contract](https://github.com/onflow/flow-core-contracts/blob/master/contracts/RandomBeaconHistory.cdc)
 are subject to post-selection attacks from transactions.
 In simple terms, using the random source in your contract without
 the protection of a commit-reveal mechanism would enable non-trusted callers to condition their interactions with your contract on the
@@ -49,11 +50,11 @@ game.
 
 To achieve non-revertible randomness, the contract should be structured to resolve in two phases:
 
-1. Commit - Caller commits to the resolution of their bet with some yet unknown source of randomness (i.e. in the
-   future)
-2. Reveal - Caller can then resolve the result of their bet once the source of randomness is available in the `RandomBeaconHistory` with a separate transaction.
-   From a technical perspective, this could also be called "resolving transaction", because the transaction simply executes the smart contract with the locked-in
-   inputs, whose output all parties committed to accept in the previous phase.
+1. **Commit** - Caller commits to the resolution of their bet with some yet unknown source of randomness (i.e. in the
+  future)
+2. **Reveal** - Caller can then resolve the result of their bet once the source of randomness is available in the `RandomBeaconHistory` with a separate transaction.
+  From a technical perspective, this could also be called a "resolving transaction", because the transaction simply executes the smart contract with the locked-in
+  inputs, whose output all parties committed to accept in the previous phase.
 
 Though a caller could still condition the revealing transaction on the coin flip result, all the inputs influencing the bet's outcome
 have already been fixed (the source of randomness being the last one that is only generated after the commit transaction concluded).
@@ -63,14 +64,17 @@ All that the resolving transaction (reveal phase) is doing is affirming the win 
 The ticket owner could revert their resolving transaction. Though that does not change whether the ticket won or lost. Furthermore, the player has already
 incurred the cost of their bet and gains nothing by reverting the reveal step.
 
+Given that Flow has both Cadence and EVM runtimes, commit-reveal patterns covering Cadence and Solidity are found in this repo as well as transactions demonstrating how Flow accounts can interact with EVM implementations from the Cadence runtime via COAs.
+
 ## Deployments
 
 |Contract|Testnet|Mainnet|
 |---|---|---|
-|[CoinToss](./contracts/CoinToss.cdc)|[0xd1299e755e8be5e7](https://contractbrowser.com/A.d1299e755e8be5e7.CoinToss)|N/A|
-|[Xorshift128plus](./contracts/Xorshift128plus.cdc)|[0xed24dbe901028c5c](https://contractbrowser.com/A.ed24dbe901028c5c.Xorshift128plus)|[0x45caec600164c9e6](https://contractbrowser.com/A.45caec600164c9e6.Xorshift128plus)|
+|[CoinToss.cdc](./contracts/CoinToss.cdc)|[0xd1299e755e8be5e7](https://contractbrowser.com/A.d1299e755e8be5e7.CoinToss)|N/A|
+|[Xorshift128plus.cdc](./contracts/Xorshift128plus.cdc)|[0xed24dbe901028c5c](https://contractbrowser.com/A.ed24dbe901028c5c.Xorshift128plus)|[0x45caec600164c9e6](https://contractbrowser.com/A.45caec600164c9e6.Xorshift128plus)|
+|[CoinToss.sol](./contracts/CoinToss.sol)|TBD|N/A|
 
-## Further Reading 
+## Further Reading
 
 
 - We recommend the **Flow developer documentation** [**_Advanced Concepts → Flow VRF_**](https://developers.flow.com/build/advanced-concepts/randomness)
@@ -80,3 +84,4 @@ incurred the cost of their bet and gains nothing by reverting the reveal step.
 - [Pull request introducing the `RandomBeaconHistory` system smart contract.](https://github.com/onflow/flow-core-contracts/pull/375) 
 - [FLIP 123: _On-Chain randomness history for commit-reveal schemes_](https://github.com/onflow/flips/pull/123) describes the need for a commit-and-reveal scheme and 
   discusses ideas for additional convenience functionality to further optimize the developer experience in the future.
+- For more on Cadence Arch pre-compiles and accessing random values from EVM on Flow, see documentation on the [Cadence Arch precompiled contracts](https://developers.flow.com/evm/how-it-works#precompiled-contracts).
