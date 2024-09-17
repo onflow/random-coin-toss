@@ -11,6 +11,6 @@ transaction(sourceOfRandomness: [UInt8], salt: [UInt8]) {
     prepare(signer: auth(BorrowValue) &Account) {
         signer.storage.borrow<&RandomResultStorage.Admin>(from: RandomResultStorage.STORAGE_PATH)
             ?.initializePRG(sourceOfRandomness: sourceOfRandomness, salt: salt)
-            ?? panic("Signer is not admin for RandomResultStorage!")
+            ?? panic("Signer is not Admin for RandomResultStorage!")
     }
 }

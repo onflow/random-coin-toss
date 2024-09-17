@@ -44,8 +44,10 @@ access(all) contract CoinToss {
     ///
     access(all) fun commitCoinToss(bet: @{FungibleToken.Vault}): @Receipt {
         pre {
-            bet.balance > 0.0: "Bet amount must be greater than 0"
-            bet.getType() == Type<@FlowToken.Vault>(): "Bet must be of type FlowToken.Vault"
+            bet.balance > 0.0:
+            "Provided vault.balance=0.0 - must deposit a non-zero amount to commit to a coin toss"
+            bet.getType() == Type<@FlowToken.Vault>():
+            "Invalid vault type=".concat(bet.getType().identifier).concat(" - must provide a FLOW vault")
         }
         let receipt <- create Receipt(
                 betAmount: bet.balance
@@ -67,7 +69,10 @@ access(all) contract CoinToss {
     ///
     access(all) fun revealCoinToss(receipt: @Receipt): @{FungibleToken.Vault} {
         pre {
-            receipt.commitBlock <= getCurrentBlock().height: "Cannot reveal before commit block"
+            receipt.commitBlock <= getCurrentBlock().height:
+            "Provided receipt committed at block height=".concat(receipt.commitBlock.toString()).concat(
+                " - must wait until at least the following block to reveal"
+            )
         }
 
         let betAmount = receipt.betAmount
@@ -99,7 +104,12 @@ access(all) contract CoinToss {
     access(all) fun randomCoin(atBlockHeight: UInt64, salt: UInt64): UInt8 {
         // query the Random Beacon history core-contract - if `blockHeight` <= current block height, panic & revert
         let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
-        assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
+        assert(
+            sourceOfRandomness.blockHeight == atBlockHeight,
+            message: "Invalid response: Requested blockHeight=".concat(atBlockHeight.toString()).concat(
+                " but received random source block height=".concat(sourceOfRandomness.blockHeight.toString())
+            )
+        )
 
         // instantiate a PRG object, seeding a source of randomness with `salt` and returns a pseudo-random
         // generator object.
