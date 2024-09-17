@@ -27,18 +27,11 @@ contract CoinToss is CadenceRandomConsumer {
     }
 
     /**
-     * @dev Checks if a value is non-zero.
-     */
-    function isNonZero(uint256 value) public pure returns (bool) {
-        return value > 0;
-    }
-
-    /**
      * @dev Allows a user to flip a coin by sending FLOW to the contract. This is the commit step in the commit-reveal scheme.
      */
     function flipCoin() public payable {
-        require(isNonZero(msg.value), "Must send FLOW to place flip a coin");
-        require(!isNonZero(coinTosses[msg.sender]), "Must close previous coin flip before placing a new one");
+        require(_isNonZero(msg.value), "Must send FLOW to place flip a coin");
+        require(!_isNonZero(coinTosses[msg.sender]), "Must close previous coin flip before placing a new one");
 
         // request randomness
         uint256 requestId = _requestRandomness();
@@ -79,5 +72,12 @@ contract CoinToss is CadenceRandomConsumer {
         }
 
         emit CoinRevealed(msg.sender, requestId, coinFace, prize);
+    }
+
+    /**
+     * @dev Checks if a value is non-zero.
+     */
+    function _isNonZero(uint256 value) internal pure returns (bool) {
+        return value > 0;
     }
 }
