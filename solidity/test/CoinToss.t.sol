@@ -34,7 +34,7 @@ contract CoinTossTest is Test {
         vm.mockCall(
             coinToss.cadenceArch(),
             abi.encodeWithSignature("flowBlockHeight()"),
-            abi.encode(mockFlowBlockHeight + 1) // Simulate a new Flow block
+            abi.encode(mockFlowBlockHeight) // Simulate a new Flow block
         );
 
         // Simulate that the next call is made by `user`
@@ -52,9 +52,24 @@ contract CoinTossTest is Test {
         coinToss.flipCoin();
     }
 
+    function testRevealCoinFailSameBlock() public {
+        vm.mockCall(
+            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
+        );
+        vm.prank(user);
+        coinToss.flipCoin{value: 1 ether}();
+
+        vm.mockCall(
+            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
+        );
+        vm.prank(user);
+        vm.expectRevert("Cannot fulfill request until subsequent Flow network block height"); // Expect a revert since the block hasn't advanced
+        coinToss.revealCoin();
+    }
+
     function testRevealCoinWins() public {
         vm.mockCall(
-            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1)
+            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
         );
 
         // First, flip the coin
@@ -66,16 +81,14 @@ contract CoinTossTest is Test {
         uint256 initialBalance = user.balance;
 
         vm.mockCall(
-            coinToss.cadenceArch(),
-            abi.encodeWithSignature("flowBlockHeight()"),
-            abi.encode(mockFlowBlockHeight + 2) // Simulate a new Flow block
+            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1)
         );
         // The result gets hashed in CadenceRandomConsumer with the request ID. Unfortunately we can't mockCall internal
         // functions, so we just use a mocked value that should result in a win (even number).
         vm.mockCall(
             coinToss.cadenceArch(),
-            abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight + 1),
-            abi.encode(uint64(1)) // Mocked result
+            abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight),
+            abi.encode(uint64(1))
         );
         vm.prank(user);
         coinToss.revealCoin();
@@ -90,22 +103,18 @@ contract CoinTossTest is Test {
 
     function testRevealCoinLoses() public {
         vm.mockCall(
-            coinToss.cadenceArch(),
-            abi.encodeWithSignature("flowBlockHeight()"),
-            abi.encode(mockFlowBlockHeight + 1)
+            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
         );
 
         vm.prank(user);
         coinToss.flipCoin{value: 1 ether}();
 
         vm.mockCall(
-            coinToss.cadenceArch(),
-            abi.encodeWithSignature("flowBlockHeight()"),
-            abi.encode(mockFlowBlockHeight + 2)
+            coinToss.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1)
         );
         vm.mockCall(
             coinToss.cadenceArch(),
-            abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight + 1),
+            abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight),
             abi.encode(uint64(0))
         );
 

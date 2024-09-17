@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {CadenceArchWrapper} from "./CadenceArchWrapper.sol";
+
 /**
  * @dev This contract is a base contract for secure consumption of Flow's protocol-native randomness via the Cadence
  * Arch pre-compile. Implementing contracts benefit from the commit-reveal scheme below, ensuring that callers cannot
  * revert on undesirable random results.
  */
-abstract contract CadenceRandomConsumer {
-    // Cadence Arch pre-compile address
-    address public constant cadenceArch = 0x0000000000000000000000010000000000000001;
-
+abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     // A struct to store the request details
     struct Request {
         // The Flow block height at which the request was made
@@ -46,7 +45,7 @@ abstract contract CadenceRandomConsumer {
         // Store the heights at which the request was made. Note that the Flow block height and EVM block height are
         // not the same. But since Flow blocks ultimately determine usage of secure randomness, we gate requests by
         // Flow block height.
-        Request memory request = Request(_getFlowBlockHeight(), block.number);
+        Request memory request = Request(_flowBlockHeight(), block.number);
 
         // Store the request in the list of requests
         _requests.push(request);
@@ -77,7 +76,7 @@ abstract contract CadenceRandomConsumer {
         Request memory request = _requests[requestIndex];
 
         // Ensure that the request is fulfilled at a Flow block height greater than the one at which the request was made
-        uint64 flowHeight = _getFlowBlockHeight();
+        uint64 flowHeight = _flowBlockHeight();
         require(request.flowHeight < flowHeight, "Cannot fulfill request until subsequent Flow network block height");
 
         // Get the random source for the Flow block at which the request was made
@@ -89,34 +88,5 @@ abstract contract CadenceRandomConsumer {
 
         // Return the random result
         return randomResult;
-    }
-
-    /**
-     * @dev This method returns the current Flow block height
-     *
-     * @return flowBlockHeight The current Flow block height.
-     */
-    function _getFlowBlockHeight() internal view returns (uint64) {
-        (bool ok, bytes memory data) = cadenceArch.staticcall(abi.encodeWithSignature("flowBlockHeight()"));
-        require(ok, "Unsuccessful call to Cadence Arch pre-compile when fetching Flow block height");
-
-        uint64 output = abi.decode(data, (uint64));
-        return output;
-    }
-
-    /**
-     * @dev This method uses the Cadence Arch pre-compiles to returns a random source for a given Flow block height.
-     * The provided height must be at least one block in the past.
-     *
-     * @param flowHeight The Flow block height for which to get the random source.
-     * @return randomSource The random source for the given Flow block height.
-     */
-    function _getRandomSource(uint64 flowHeight) private view returns (uint64) {
-        (bool ok, bytes memory data) =
-            cadenceArch.staticcall(abi.encodeWithSignature("getRandomSource(uint64)", flowHeight));
-        require(ok, "Unsuccessful call to Cadence Arch pre-compile when fetching random source");
-
-        uint64 output = abi.decode(data, (uint64));
-        return output;
     }
 }

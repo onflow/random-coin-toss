@@ -4,7 +4,8 @@ pragma solidity 0.8.19;
 import "./CadenceRandomConsumer.sol";
 
 /**
- * @dev This contract is a simple coin toss game where users can place win prizes by flipping a coin.
+ * @dev This contract is a simple coin toss game where users can place win prizes by flipping a coin as a demonstration
+ * of safe usage of Flow EVM's native secure randomness.
  */
 contract CoinToss is CadenceRandomConsumer {
     // A constant to store the multiplier for the prize
