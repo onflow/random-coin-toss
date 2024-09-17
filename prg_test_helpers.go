@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	. "github.com/bjartek/overflow"
+	. "github.com/bjartek/overflow/v2"
 	"github.com/stretchr/testify/require"
 )
 

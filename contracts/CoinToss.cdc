@@ -42,7 +42,13 @@ access(all) contract CoinToss {
     /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
     /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
     ///
-    access(all) fun commitCoinToss(bet: @FungibleToken.Vault): @Receipt {
+    access(all) fun commitCoinToss(bet: @{FungibleToken.Vault}): @Receipt {
+        pre {
+            bet.balance > 0.0:
+            "Provided vault.balance=0.0 - must deposit a non-zero amount to commit to a coin toss"
+            bet.getType() == Type<@FlowToken.Vault>():
+            "Invalid vault type=".concat(bet.getType().identifier).concat(" - must provide a FLOW vault")
+        }
         let receipt <- create Receipt(
                 betAmount: bet.balance
             )
@@ -61,9 +67,12 @@ access(all) contract CoinToss {
     /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
     /// they do.
     ///
-    access(all) fun revealCoinToss(receipt: @Receipt): @FungibleToken.Vault {
+    access(all) fun revealCoinToss(receipt: @Receipt): @{FungibleToken.Vault} {
         pre {
-            receipt.commitBlock <= getCurrentBlock().height: "Cannot reveal before commit block"
+            receipt.commitBlock <= getCurrentBlock().height:
+            "Provided receipt committed at block height=".concat(receipt.commitBlock.toString()).concat(
+                " - must wait until at least the following block to reveal"
+            )
         }
 
         let betAmount = receipt.betAmount
@@ -78,7 +87,7 @@ access(all) contract CoinToss {
 
         if coin == 1 {
             emit CoinTossReveal(betAmount: betAmount, winningAmount: 0.0, commitBlock: commitBlock, receiptID: receiptID)
-            return <- FlowToken.createEmptyVault()
+            return <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
         }
 
         let reward <- self.reserve.withdraw(amount: betAmount * 2.0)
@@ -95,7 +104,12 @@ access(all) contract CoinToss {
     access(all) fun randomCoin(atBlockHeight: UInt64, salt: UInt64): UInt8 {
         // query the Random Beacon history core-contract - if `blockHeight` <= current block height, panic & revert
         let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
-        assert(sourceOfRandomness.blockHeight == atBlockHeight, message: "RandomSource block height mismatch")
+        assert(
+            sourceOfRandomness.blockHeight == atBlockHeight,
+            message: "Invalid response: Requested blockHeight=".concat(atBlockHeight.toString()).concat(
+                " but received random source block height=".concat(sourceOfRandomness.blockHeight.toString())
+            )
+        )
 
         // instantiate a PRG object, seeding a source of randomness with `salt` and returns a pseudo-random
         // generator object.
@@ -111,8 +125,10 @@ access(all) contract CoinToss {
     }
 
     init() {
-        self.reserve <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
-        let seedVault = self.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
+        self.reserve <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
+        let seedVault = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(
+                from: /storage/flowTokenVault
+            )!
         self.reserve.deposit(
             from: <-seedVault.withdraw(amount: 1000.0)
         )

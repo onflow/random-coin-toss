@@ -35,6 +35,6 @@ access(all) contract RandomResultStorage {
 
         self.STORAGE_PATH = /storage/RandomResultStorageAdmin
 
-        self.account.save(<-create Admin(), to: self.STORAGE_PATH)
+        self.account.storage.save(<-create Admin(), to: self.STORAGE_PATH)
     }
 }

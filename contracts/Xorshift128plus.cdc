@@ -25,7 +25,9 @@ access(all) contract Xorshift128plus {
         ///
         init(sourceOfRandomness: [UInt8], salt: [UInt8]) {
             pre {
-                sourceOfRandomness.length >= 16: "At least 16 bytes of entropy should be used"
+                sourceOfRandomness.length >= 16:
+                "Provided entropy lengh=".concat(sourceOfRandomness.length.toString())
+                .concat(" - at least 16 bytes of entropy should be used when initializing the PRG")
             }
 
             let tmp: [UInt8] = sourceOfRandomness.concat(salt)
@@ -39,7 +41,10 @@ access(all) contract Xorshift128plus {
             let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 8)
 
             // Ensure the initial state is non-zero
-            assert(segment0 != 0 || segment1 != 0, message: "PRG initial state must be initialized as non-zero")
+            assert(
+                segment0 != 0 || segment1 != 0,
+                message: "PRG initial state is 0 - must be initialized as non-zero"
+            )
             
             self.state0 = segment0
             self.state1 = segment1
@@ -76,7 +81,9 @@ access(all) contract Xorshift128plus {
     ///
     access(contract) fun bigEndianBytesToWord64(bytes: [UInt8], start: Int): Word64 {
         pre {
-            start + 8 <= bytes.length: "At least 8 bytes from the start are required for conversion"
+            start + 8 <= bytes.length:
+            "Defined start=".concat(start.toString())
+            .concat(" - at least 8 bytes from the start are required for conversion")
         }
         var value: UInt64 = 0
         var i: Int = 0
