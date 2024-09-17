@@ -9,7 +9,7 @@ transaction {
     prepare(signer: auth(BorrowValue, LoadValue) &Account) {
         // Load my receipt from storage
         let receipt <- signer.storage.load<@CoinToss.Receipt>(from: CoinToss.ReceiptStoragePath)
-            ?? panic("No Receipt found!")
+            ?? panic("No Receipt found in storage at path=".concat(CoinToss.ReceiptStoragePath.toString()))
 
         // Reveal by redeeming my receipt - fingers crossed!
         let winnings <- CoinToss.revealCoinToss(receipt: <-receipt)

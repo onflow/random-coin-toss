@@ -12,6 +12,6 @@ transaction(generationLength: Int) {
     prepare(signer: auth(BorrowValue) &Account) {
         signer.storage.borrow<&RandomResultStorage.Admin>(from: RandomResultStorage.STORAGE_PATH)
             ?.generateResults(length: generationLength)
-            ?? panic("Signer is not admin for RandomResultStorage!")
+            ?? panic("Signer is not Admin for RandomResultStorage!")
     }
 }

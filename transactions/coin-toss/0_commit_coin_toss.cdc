@@ -17,7 +17,7 @@ transaction(betAmount: UFix64) {
         
         // Check that I don't already have a receipt stored
         if signer.storage.type(at: CoinToss.ReceiptStoragePath) != nil {
-            panic("You already have a receipt stored!")
+            panic("Storage collision at path=".concat(CoinToss.ReceiptStoragePath.toString()).concat(" a Receipt is already stored!"))
         }
 
         // Save that receipt to my storage
