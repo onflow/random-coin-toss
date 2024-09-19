@@ -10,7 +10,7 @@ or seeding their own PRNG utilizing the `RandomBeaconHistory` smart contract:
   However, when using `revertibleRandom` a developer is relying on the PRNG that is controlled by the transaction,
   which also has the power to abort and revert based on `revertibleRandom`'s outputs. Therefore,
   `revertibleRandom` is only suitable for smart contract functions that exclusively run within credibly-neutral transactions which a developer can trust won't revert based on undesirable random outputs.
-- In contrast, using the `RandomBeaconHistory` allows developers to use a deterministically-seeded PRNG. 
+- In contrast, using the `RandomBeaconHistory` allows developers to use a committed random source (or seed) that can't be reverted. 
   The `RandomBeaconHistory` is key for effectively implementing a commit-and-reveal scheme which is itself a pattern that prevents users from gaming a transaction based on the result of randomness.
   During the commit phase, the user commits to proceed with a **future** source of randomness
   which is revealed after the commit transaction concludes.
