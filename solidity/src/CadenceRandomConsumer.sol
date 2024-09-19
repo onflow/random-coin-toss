@@ -81,7 +81,10 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
 
         // Get the random source for the Flow block at which the request was made
         uint64 randomResult = _getRandomSource(request.flowHeight); // returns bytes32
-        // Pack the randomResult into a uint64, hashing with the requestId to vary results across shared block heights
+        // Pack the randomResult into a uint64, hashing with the requestId to vary results across shared block heights.
+        // The random seed returned from Cadence Arch is only 32 bytes. Here only 8 bytes were required, but if an
+        // implementing contract requires more random bytes, the source should be expanded into any arbitrary number of
+        // bytes using a PRG.
         randomResult = uint64(uint256(keccak256(abi.encodePacked(randomResult, requestId))));
 
         emit RandomnessFulfilled(requestId, request.flowHeight, request.evmHeight, randomResult);

@@ -6,8 +6,7 @@ On Flow, there are two routes to get a random value. While both are backed by Fl
 it is important for developers to mindfully choose between `revertibleRandom`
 or seeding their own PRNG utilizing the `RandomBeaconHistory` smart contract:
 
-- Under the hood, the FVM instantiates a PRNG for each transaction from which `revertibleRandom` generates random numbers. 
-  However, when using `revertibleRandom` a developer is relying on the PRNG that is controlled by the transaction,
+- When using `revertibleRandom` a developer is relying on randomness generation controlled by the transaction,
   which also has the power to abort and revert based on `revertibleRandom`'s outputs. Therefore,
   `revertibleRandom` is only suitable for smart contract functions that exclusively run within credibly-neutral transactions which a developer can trust won't revert based on undesirable random outputs.
 - In contrast, using the `RandomBeaconHistory` allows developers to use a committed random source (or seed) that can't be reverted. 
