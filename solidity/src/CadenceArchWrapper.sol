@@ -50,7 +50,12 @@ abstract contract CadenceArchWrapper {
             cadenceArch.staticcall(abi.encodeWithSignature("getRandomSource(uint64)", flowHeight));
         require(ok, "Unsuccessful call to Cadence Arch pre-compile when fetching random source");
 
-        uint64 output = abi.decode(data, (uint64));
+        // Decode the result as bytes32 and then cast it to uint64
+        bytes32 result = abi.decode(data, (bytes32));
+
+        // Convert the bytes32 result to uint64 by casting, taking the least significant 8 bytes
+        uint64 output = uint64(uint256(result));
+
         return output;
     }
 }
