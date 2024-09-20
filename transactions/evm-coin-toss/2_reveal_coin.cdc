@@ -32,7 +32,7 @@ transaction(coinTossContractAddress: String) {
         assert(
             callResult.status == EVM.Status.successful,
             message: "Call to ".concat(coinTossContractAddress).concat(" failed with error code=")
-                .concat(callResult.errorCode.toString())
+                .concat(callResult.errorCode.toString()).concat(" and message=").concat(callResult.errorMessage)
         )
     }
 }
