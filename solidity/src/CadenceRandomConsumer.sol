@@ -37,7 +37,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      *
      * @return requestId The ID of the request.
      */
-    function _requestRandomness() public returns (uint256) {
+    function _requestRandomness() internal returns (uint256) {
         // Identify the request by the current request counter, incrementing first so implementations can use 0 for
         // invalid requests - e.g. myRequests[msg.sender] == 0 means the caller has no pending requests
         _requestCounter++;
