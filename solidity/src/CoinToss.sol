@@ -80,4 +80,9 @@ contract CoinToss is CadenceRandomConsumer {
     function _isNonZero(uint256 value) internal pure returns (bool) {
         return value > 0;
     }
+
+    /**
+     * @dev Fallback function to receive FLOW.
+     */
+    receive() external payable {}
 }
