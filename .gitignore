@@ -1,4 +1,14 @@
+# Local keys
 *.pem
 *.pkey
 
+# Cadence dependencies
 imports/
+
+# Cadence testing
+coverage.lcov
+coverage.json
+
+# Foundry directories
+cache/
+out/
