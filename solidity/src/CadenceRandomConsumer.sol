@@ -121,7 +121,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     }
 
     /**
-     * @dev This method fulfills a random request and returns a random number in the range [min, max].
+     * @dev This method fulfills a random request and safely returns an unbiased random number in the range [min, max].
      *
      * @param requestId The ID of the randomness request to fulfill.
      * @param min The minimum value of the range (inclusive).
@@ -147,30 +147,32 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     ////////////////////
 
     /**
-     * @dev This method returns a random number in the range [min, max].
+     * @dev This method returns a number in the range [min, max] from the given value.
+     * NOTE: You may be tempted to simply use value % (max - min + 1) to get a number in the range [min, max]. However,
+     * this method is not secure is susceptible to the modulo bias. This method provides an unbiased alternative for
+     * secure use of randomness.
      *
      * @param min The minimum value of the range (inclusive).
      * @param max The maximum value of the range (inclusive).
      * @return random The random number in the range [min, max].
      */
-    function _getNumberInRange(uint256 randomValue, uint64 min, uint64 max) private pure returns (uint64) {
+    function _getNumberInRange(uint256 value, uint64 min, uint64 max) private pure returns (uint64) {
         require(max > min, "Max must be greater than min");
 
         uint64 range = max - min + 1;
         uint64 bitsRequired = _mostSignificantBit(range - 1); // Number of bits needed to cover the range
-        // uint256 randomValue = _aggregateRandom256(); // Aggregate 256 bits from 4 calls to _revertibleRandom()
         uint256 mask = (1 << bitsRequired) - 1; // Create a bitmask to extract relevant bits
         uint64 candidate = 0; // Initialize candidate
 
         while (true) {
-            candidate = uint64(randomValue & mask); // Apply bitmask to extract bits
+            candidate = uint64(value & mask); // Apply bitmask to extract bits
             // If candidate is in range, break and return
             if (candidate < range) {
                 break;
             }
             // Shift to the next chunk of bits
-            randomValue = randomValue >> bitsRequired;
-            require(randomValue > 0, "Random number source exhausted");
+            value = value >> bitsRequired;
+            require(value > 0, "Random number source exhausted");
         }
 
         uint64 randomResult = candidate + min; // Scale candidate to the range [min, max]
