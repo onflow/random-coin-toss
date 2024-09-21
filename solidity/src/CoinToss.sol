@@ -16,8 +16,8 @@ contract CoinToss is CadenceRandomConsumer {
     // A mapping to store the value sent by the user for each request
     mapping(uint256 => uint256) public openRequests;
 
-    event CoinFlipped(address indexed user, uint256 requestId, uint256 amount);
-    event CoinRevealed(address indexed user, uint256 requestId, uint8 coinFace, uint256 prize);
+    event CoinFlipped(address indexed user, uint256 indexed requestId, uint256 amount);
+    event CoinRevealed(address indexed user, uint256 indexed requestId, uint8 coinFace, uint256 prize);
 
     /**
      * @dev Checks if a user has an open request.
@@ -54,9 +54,8 @@ contract CoinToss is CadenceRandomConsumer {
         // delete the open request from the coinTosses mapping
         delete coinTosses[msg.sender];
 
-        // fulfill the random request
-        uint64 randomResult = _fulfillRandomness(uint32(requestId));
-        uint8 coinFace = uint8(randomResult % 2);
+        // fulfill the random request within the inclusive range [0, 1]
+        uint8 coinFace = uint8(_fulfillRandomInRange(requestId, 0, 1));
 
         // get the value sent in the flipCoin function & remove the request from the openRequests mapping
         uint256 amount = openRequests[requestId];
