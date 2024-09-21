@@ -44,7 +44,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
         if (requestIndex >= _requests.length) {
             return false;
         }
-        Request memory request = _requests[requestIndex];
+        Request storage request = _requests[requestIndex];
         uint64 flowHeight = _flowBlockHeight();
         return !request.fulfilled && request.flowHeight < flowHeight;
     }
@@ -199,7 +199,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
         require(requestIndex < _requests.length, "Invalid request ID - value exceeds the number of existing requests");
 
         // Access & validate the request
-        Request memory request = _requests[requestIndex];
+        Request storage request = _requests[requestIndex];
         _validateRequest(request);
         request.fulfilled = true; // Mark the request as fulfilled
 

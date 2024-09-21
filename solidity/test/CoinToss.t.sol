@@ -99,6 +99,12 @@ contract CoinTossTest is Test {
         uint8 multiplier = coinToss.multiplier();
         uint256 expectedPrize = sentValue * multiplier;
         assertEq(finalBalance, initialBalance + expectedPrize, "User should have received a prize");
+
+        bool hasOpenRequest = coinToss.hasOpenRequest(user);
+        assertEq(false, hasOpenRequest, "User should not have an open request after revealing the coin");
+
+        bool canFullfillRequest = coinToss.canFulfillRequest(uint256(1));
+        assertEq(false, canFullfillRequest, "Request should not be fulfillable after revealing the coin");
     }
 
     function testRevealCoinLoses() public {

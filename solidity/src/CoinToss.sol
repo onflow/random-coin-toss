@@ -55,7 +55,7 @@ contract CoinToss is CadenceRandomConsumer {
         delete coinTosses[msg.sender];
 
         // fulfill the random request within the inclusive range [0, 1]
-        uint8 coinFace = uint8(_fulfillRandomInRange(requestId, 0, 1));
+        uint8 coinFace = uint8(_fulfillRandomInRange(requestId, uint64(0), uint64(1)));
 
         // get the value sent in the flipCoin function & remove the request from the openRequests mapping
         uint256 amount = openRequests[requestId];
