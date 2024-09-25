@@ -231,13 +231,12 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      * @param x The input value.
      * @return bits The most significant bit of the input value.
      */
-    function _mostSignificantBit(uint64 x) private pure returns (uint64) {
-        uint64 bits = 0;
-        while (x > 0) {
-            x >>= 1;
-            bits++;
+    function _getMask(uint64 x) private pure returns (uint64) {
+        uint64 mask = 0;
+        while (mask & x != x) {
+            mask = (mask<<1) | 1;
         }
-        return bits;
+        return mask;
     }
 
     /**
