@@ -55,8 +55,8 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
 
     /**
      * @dev This method returns a ***REVERTIBLE** random number in the range [min, max].
-     * NOTE: The fact that this method is revertible means that it should only be used in cases where the caller is
-     * trusted not to revert on the result.
+     * NOTE: The fact that this method is revertible means that it should only be used in cases where the initiating
+     * caller is trusted not to revert on the result.
      *
      * @param min The minimum value of the range (inclusive).
      * @param max The maximum value of the range (inclusive).
@@ -121,12 +121,12 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     }
 
     /**
-     * @dev This method fulfills a random request and safely returns an unbiased random number in the range [min, max].
+     * @dev This method fulfills a random request and safely returns an unbiased random number in the range inclusive [min, max].
      *
      * @param requestId The ID of the randomness request to fulfill.
      * @param min The minimum value of the range (inclusive).
      * @param max The maximum value of the range (inclusive).
-     * @return randomResult The random number in the range [min, max].
+     * @return randomResult The random number in the inclusive range [min, max].
      */
     function _fulfillRandomInRange(uint256 requestId, uint64 min, uint64 max) internal returns (uint64) {
         // Ensure that the request is fulfilled at a Flow block height greater than the one at which the request was made
@@ -148,10 +148,11 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
 
     /**
      * @dev This method returns a number in the range [min, max] from the given value.
-     * NOTE: You may be tempted to simply use value % (max - min + 1) to get a number in the range [min, max]. However,
-     * this method is not secure is susceptible to the modulo bias. This method provides an unbiased alternative for
+     * NOTE: You may be tempted to simply use `value % (max - min + 1)` to get a number in a range. However, this
+     * method is not secure is susceptible to the modulo bias. This method provides an unbiased alternative for secure
      * secure use of randomness.
      *
+     * @param value The value to extract bits from.
      * @param min The minimum value of the range (inclusive).
      * @param max The maximum value of the range (inclusive).
      * @return random The random number in the range [min, max].
