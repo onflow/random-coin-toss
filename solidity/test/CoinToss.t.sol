@@ -88,7 +88,7 @@ contract CoinTossTest is Test {
         vm.mockCall(
             coinToss.cadenceArch(),
             abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight),
-            abi.encode(bytes32(0x0000000000000000000000000000000000000000000000000000000000000006))
+            abi.encode(bytes32(0x0000000000000000000000000000000000000000000000000000000000000011))
         );
         vm.prank(user);
         coinToss.revealCoin();
@@ -121,8 +121,9 @@ contract CoinTossTest is Test {
         vm.mockCall(
             coinToss.cadenceArch(),
             abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight),
-            abi.encode(bytes32(0x0))
+            abi.encode(bytes32(0xff00000000000000000000000000000000000000000000000000000000000001))
         );
+        // abi.encode(bytes32(0x0000000000000000000000000000000000000000000000000000000000000099))
 
         // Ensure that the user doesn't get paid
         uint256 initialBalance = user.balance;

@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import {CadenceArchWrapper} from "./CadenceArchWrapper.sol";
+import "./Xorshift128plus.sol";
 
 /**
  * @dev This contract is a base contract for secure consumption of Flow's protocol-native randomness via the Cadence
@@ -9,6 +10,8 @@ import {CadenceArchWrapper} from "./CadenceArchWrapper.sol";
  * revert on undesirable random results.
  */
 abstract contract CadenceRandomConsumer is CadenceArchWrapper {
+    using Xorshift128plus for Xorshift128plus.PRG;
+
     // A struct to store the request details
     struct Request {
         // The Flow block height at which the request was made
@@ -63,8 +66,14 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      * @return random The random number in the range [min, max].
      */
     function _getRevertibleRandomInRange(uint64 min, uint64 max) internal view returns (uint64) {
-        uint256 randomValue = _aggregateRevertibleRandom256();
-        return _getNumberInRange(randomValue, min, max);
+        bytes memory seed = abi.encodePacked(_aggregateRevertibleRandom256());
+        bytes memory salt = abi.encodePacked(block.number);
+
+        // Instantiate a PRG with the aggregate bytes and salt with current block number
+        Xorshift128plus.PRG memory prg;
+        prg.seed(seed, salt);
+
+        return _getNumberInRange(prg, min, max);
     }
 
     /**
@@ -112,8 +121,14 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      * @return randomResult The random number.
      */
     function _fulfillRandomRequest(uint256 requestId) internal returns (uint64) {
-        bytes32 randomValue = _fulfillRandomness(requestId);
-        uint64 randomResult = uint64(uint256(keccak256(abi.encodePacked(randomValue, requestId))));
+        bytes memory seed = abi.encodePacked(_fulfillRandomness(requestId));
+        bytes memory salt = abi.encodePacked(requestId);
+
+        // Instantiate a PRG, seeding with the random value and salting with the request ID
+        Xorshift128plus.PRG memory prg;
+        prg.seed(seed, salt);
+
+        uint64 randomResult = prg.nextUInt64();
 
         emit RandomnessFulfilled(requestId, randomResult);
 
@@ -131,11 +146,14 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     function _fulfillRandomInRange(uint256 requestId, uint64 min, uint64 max) internal returns (uint64) {
         // Ensure that the request is fulfilled at a Flow block height greater than the one at which the request was made
         // Get the random source for the Flow block at which the request was made
-        bytes32 randomSource = _fulfillRandomness(requestId);
-        // Pack the randomResult into a uint256, hashing with the requestId to vary results across shared block heights.
-        uint256 randomValue = uint256(keccak256(abi.encodePacked(randomSource, requestId)));
+        bytes memory seed = abi.encodePacked(_fulfillRandomness(requestId));
+        bytes memory salt = abi.encodePacked(requestId);
 
-        uint64 randomResult = _getNumberInRange(randomValue, min, max);
+        // Instantiate a PRG with the random source and the request ID
+        Xorshift128plus.PRG memory prg;
+        prg.seed(seed, salt);
+
+        uint64 randomResult = _getNumberInRange(prg, min, max); // Get a random number in the range [min, max]
 
         emit RandomnessFulfilled(requestId, randomResult);
 
@@ -147,35 +165,40 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     ////////////////////
 
     /**
-     * @dev This method returns a number in the range [min, max] from the given value.
+     * @dev This method returns a number in the range [min, max] from the given value with a variation on rejection
+     * sampling.
      * NOTE: You may be tempted to simply use `value % (max - min + 1)` to get a number in a range. However, this
      * method is not secure is susceptible to the modulo bias. This method provides an unbiased alternative for secure
      * secure use of randomness.
      *
-     * @param value The value to extract bits from.
+     * @param prg The PRG to use for generating the random number.
      * @param min The minimum value of the range (inclusive).
      * @param max The maximum value of the range (inclusive).
      * @return random The random number in the range [min, max].
      */
-    function _getNumberInRange(uint256 value, uint64 min, uint64 max) private pure returns (uint64) {
+    function _getNumberInRange(Xorshift128plus.PRG memory prg, uint64 min, uint64 max) private pure returns (uint64) {
         require(max > min, "Max must be greater than min");
 
-        uint64 range = max - min + 1;
-        uint64 bitsRequired = _mostSignificantBit(range - 1); // Number of bits needed to cover the range
+        uint256 value = prg.nextUInt256();
+
+        uint64 range = max - min;
+        uint64 bitsRequired = _mostSignificantBit(range); // Number of bits needed to cover the range
         uint256 mask = (1 << bitsRequired) - 1; // Create a bitmask to extract relevant bits
         uint64 candidate = 0; // Initialize candidate
 
         while (true) {
-            candidate = uint64(value & mask); // Apply bitmask to extract bits
-            // If candidate is in range, break and return
-            if (candidate < range) {
-                break;
+            candidate = uint64(value & mask); // Apply the bitmask to extract bits
+            if (candidate <= range) {
+                break; // Found a suitable candidate within the target range
             }
-            // Shift to the next chunk of bits
-            value = value >> bitsRequired;
-            require(value > 0, "Random number source exhausted");
-        }
 
+            // Shift by the number of bits covered by the mask
+            value = value >> bitsRequired;
+            // Get a new value if we've run out of bits
+            if (value == 0) {
+                value = prg.nextUInt256();
+            }
+        }
         uint64 randomResult = candidate + min; // Scale candidate to the range [min, max]
         require(randomResult >= min && randomResult <= max, "Random number out of range");
         return randomResult;
@@ -232,12 +255,13 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      * @param x The input value.
      * @return bits The most significant bit of the input value.
      */
-    function _getMask(uint64 x) private pure returns (uint64) {
-        uint64 mask = 0;
-        while (mask & x != x) {
-            mask = (mask<<1) | 1;
+    function _mostSignificantBit(uint64 x) private pure returns (uint64) {
+        uint64 bits = 0;
+        while (x > 0) {
+            x >>= 1;
+            bits++;
         }
-        return mask;
+        return bits;
     }
 
     /**
@@ -246,7 +270,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      *
      * @param request The request to validate.
      */
-    function _validateRequest(Request memory request) private view {
+    function _validateRequest(Request storage request) private view {
         require(!request.fulfilled, "Request already fulfilled");
         require(
             request.flowHeight < _flowBlockHeight(), "Cannot fulfill request until subsequent Flow network block height"
