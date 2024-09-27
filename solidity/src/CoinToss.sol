@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./CadenceRandomConsumer.sol";
+import {CadenceRandomConsumer} from "./CadenceRandomConsumer.sol";
 
 /**
  * @dev This contract is a simple coin toss game where users can place win prizes by flipping a coin as a demonstration

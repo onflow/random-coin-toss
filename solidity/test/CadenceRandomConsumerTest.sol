@@ -2,9 +2,9 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
-import "../src/CadenceRandomConsumer.sol";
-import "../src/test/TestCadenceRandomConsumer.sol";
-import "../src/Xorshift128plus.sol";
+import {CadenceRandomConsumer} from "../src/CadenceRandomConsumer.sol";
+import {TestCadenceRandomConsumer} from "../src/test/TestCadenceRandomConsumer.sol";
+import {Xorshift128plus} from "../src/Xorshift128plus.sol";
 
 contract CadenceRandomConsumerTest is Test {
     TestCadenceRandomConsumer private consumer;

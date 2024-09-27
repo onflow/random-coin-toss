@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "../CadenceRandomConsumer.sol";
+import {CadenceRandomConsumer} from "../CadenceRandomConsumer.sol";
 
 /**
  * @dev This contract extends CadenceRandomConsumer to expose internal functions for testing.

@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import {CadenceArchWrapper} from "./CadenceArchWrapper.sol";
-import "./Xorshift128plus.sol";
+import {Xorshift128plus} from "./Xorshift128plus.sol";
 
 /**
  * @dev This contract is a base contract for secure consumption of Flow's protocol-native randomness via the Cadence
