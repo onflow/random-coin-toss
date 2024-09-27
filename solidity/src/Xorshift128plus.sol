@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+/**
+ * @dev This library implements the Xorshift128+ pseudo-random number generator (PRG) algorithm.
+ */
 library Xorshift128plus {
     /**
      * @dev While not limited to 128 bits of state, this PRG is largely informed by xorshift128+
@@ -13,22 +16,22 @@ library Xorshift128plus {
     /**
      * @dev Initializer for PRG struct
      *
-     * @param prg: The PRG struct to seed
+     * @param prg The PRG struct to seed
      * @param sourceOfRandomness The entropy bytes used to seed the PRG. It is recommended to use at least 16
      * bytes of entropy.
      * @param salt The bytes used to salt the source of randomness
      */
-    function seed(PRG storage prg, bytes memory sourceOfRandomness, bytes memory salt) internal {
+    function seed(PRG memory prg, bytes memory sourceOfRandomness, bytes memory salt) internal pure {
         require(
             sourceOfRandomness.length >= 16, "At least 16 bytes of entropy should be used when initializing the PRG"
         );
         bytes memory tmp = abi.encodePacked(sourceOfRandomness, salt);
         bytes32 hash = keccak256(tmp);
 
-        prg.state0 = bigEndianBytesToUint64(abi.encodePacked(hash), 0);
-        prg.state1 = bigEndianBytesToUint64(abi.encodePacked(hash), 8);
+        prg.state0 = _bigEndianBytesToUint64(abi.encodePacked(hash), 0);
+        prg.state1 = _bigEndianBytesToUint64(abi.encodePacked(hash), 8);
 
-        require(prg.state0 != 0 || prg.state1 != 0, "PRG initial state is 0 - must be initialized as non-zero");
+        _requireNonZero(prg);
     }
 
     /**
@@ -39,8 +42,9 @@ library Xorshift128plus {
      *
      * @return The next UInt64 value
      */
-    function nextUInt64(PRG storage prg) internal returns (uint64) {
-        require(prg.state0 != 0 || prg.state1 != 0, "PRG initial state is 0 - must be initialized as non-zero");
+    function nextUInt64(PRG memory prg) internal pure returns (uint64) {
+        _requireNonZero(prg);
+
         uint64 a = prg.state0;
         uint64 b = prg.state1;
 
@@ -65,19 +69,19 @@ library Xorshift128plus {
      *
      * @return The next UInt256 value
      */
-    function nextUInt256(PRG storage prg) internal returns (uint256) {
-        uint256 result = uint256(prg.nextUInt64());
-        result |= uint256(prg.nextUInt64()) << 64;
-        result |= uint256(prg.nextUInt64()) << 128;
-        result |= uint256(prg.nextUInt64()) << 192;
+    function nextUInt256(PRG memory prg) internal pure returns (uint256) {
+        uint256 result = uint256(nextUInt64(prg));
+        result |= uint256(nextUInt64(prg)) << 64;
+        result |= uint256(nextUInt64(prg)) << 128;
+        result |= uint256(nextUInt64(prg)) << 192;
         return result;
     }
 
     /**
      * @dev Helper function to convert an array of big endian bytes to Word64
      *
-     * @param bytes: The bytes to convert
-     * @param start: The index of the first byte to convert
+     * @param input The bytes to convert
+     * @param start The index of the first byte to convert
      *
      * @return The Word64 value
      */
@@ -90,7 +94,7 @@ library Xorshift128plus {
         return value;
     }
 
-    function _requireNonZero(PRG storage prg) internal view {
-        require(prg.state0 != 0 || prg.state1 != 0, "PRG state is 0");
+    function _requireNonZero(PRG memory prg) private pure {
+        require(prg.state0 != 0 || prg.state1 != 0, "PRG initial state is 0 - must be initialized as non-zero");
     }
 }
