@@ -8,6 +8,8 @@ import {Xorshift128plus} from "../src/Xorshift128plus.sol";
 
 contract CadenceRandomConsumerTest is Test {
     TestCadenceRandomConsumer private consumer;
+
+    address private cadenceArch = 0x0000000000000000000000010000000000000001;
     address payable user = payable(address(100));
     uint64 mockFlowBlockHeight = 12345;
 
@@ -22,17 +24,13 @@ contract CadenceRandomConsumerTest is Test {
         vm.deal(user, 10 ether);
 
         // Mock the Cadence Arch precompile for flowBlockHeight() call
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight));
 
         // Mock the Cadence Arch precompile for getRandomSource(uint64) call
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("getRandomSource(uint64)", 100), abi.encode(uint64(0))
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("getRandomSource(uint64)", 100), abi.encode(uint64(0)));
 
         // Mock the Cadence Arch precompile for revertibleRandom() call
-        vm.mockCall(consumer.cadenceArch(), abi.encodeWithSignature("revertibleRandom()"), abi.encode(uint64(0)));
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("revertibleRandom()"), abi.encode(uint64(0)));
     }
 
     /**
@@ -43,7 +41,7 @@ contract CadenceRandomConsumerTest is Test {
         uint64 min = 10;
         uint64 max = 100;
 
-        vm.mockCall(consumer.cadenceArch(), abi.encodeWithSignature("revertibleRandom()"), abi.encode(uint64(999)));
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("revertibleRandom()"), abi.encode(uint64(999)));
         vm.prank(user);
 
         uint64 randomValue = consumer.getRevertibleRandomInRange(min, max);
@@ -57,9 +55,7 @@ contract CadenceRandomConsumerTest is Test {
      * Ensures a randomness request is created and emits the appropriate event.
      */
     function testRequestRandomness() public {
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight));
 
         uint256 requestId = consumer.requestRandomness();
 
@@ -72,18 +68,14 @@ contract CadenceRandomConsumerTest is Test {
      * Verifies that fulfilling a random request returns a valid random number.
      */
     function testFulfillRandomRequest() public {
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight));
         // First, request randomness
         uint256 requestId = consumer.requestRandomness();
 
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1)
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1));
         // Mock the Cadence Arch precompile for getRandomSource(uint64) call
         vm.mockCall(
-            consumer.cadenceArch(),
+            cadenceArch,
             abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight),
             abi.encode(bytes32(0x0000000000000000000000000000000000000000000000000000000000000011))
         );
@@ -102,18 +94,14 @@ contract CadenceRandomConsumerTest is Test {
         uint64 min = 5;
         uint64 max = 50;
 
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight)
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight));
         // First, request randomness
         uint256 requestId = consumer.requestRandomness();
 
-        vm.mockCall(
-            consumer.cadenceArch(), abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1)
-        );
+        vm.mockCall(cadenceArch, abi.encodeWithSignature("flowBlockHeight()"), abi.encode(mockFlowBlockHeight + 1));
         // Mock the Cadence Arch precompile for getRandomSource(uint64) call
         vm.mockCall(
-            consumer.cadenceArch(),
+            cadenceArch,
             abi.encodeWithSignature("getRandomSource(uint64)", mockFlowBlockHeight),
             abi.encode(bytes32(0x0000000000000000000000000000000000000000000000000000000000000011))
         );

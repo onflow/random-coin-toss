@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
  * contracts can use this contract to fetch the current Flow block height and fetch random numbers from the Cadence
  * runtime.
  */
-abstract contract CadenceArchWrapper {
+library CadenceArchUtils {
     // Cadence Arch pre-compile address
     address public constant cadenceArch = 0x0000000000000000000000010000000000000001;
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import {CadenceArchWrapper} from "./CadenceArchWrapper.sol";
+import {CadenceArchUtils} from "./CadenceArchUtils.sol";
 import {Xorshift128plus} from "./Xorshift128plus.sol";
 
 /**
@@ -9,7 +9,7 @@ import {Xorshift128plus} from "./Xorshift128plus.sol";
  * Arch pre-compile. Implementing contracts benefit from the commit-reveal scheme below, ensuring that callers cannot
  * revert on undesirable random results.
  */
-abstract contract CadenceRandomConsumer is CadenceArchWrapper {
+abstract contract CadenceRandomConsumer {
     using Xorshift128plus for Xorshift128plus.PRG;
 
     // A struct to store the request details
@@ -48,7 +48,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
             return false;
         }
         Request storage request = _requests[requestIndex];
-        uint64 flowHeight = _flowBlockHeight();
+        uint64 flowHeight = CadenceArchUtils._flowBlockHeight();
         return !request.fulfilled && request.flowHeight < flowHeight;
     }
 
@@ -99,7 +99,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
         // Store the heights at which the request was made. Note that the Flow block height and EVM block height are
         // not the same. But since Flow blocks ultimately determine usage of secure randomness, we gate requests by
         // Flow block height.
-        Request memory request = Request(_flowBlockHeight(), block.number, false);
+        Request memory request = Request(CadenceArchUtils._flowBlockHeight(), block.number, false);
 
         // Store the request in the list of requests
         _requests.push(request);
@@ -228,7 +228,7 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
         request.fulfilled = true; // Mark the request as fulfilled
 
         // Get the random source for the Flow block at which the request was made, emit & return
-        bytes32 randomSource = _getRandomSource(request.flowHeight);
+        bytes32 randomSource = CadenceArchUtils._getRandomSource(request.flowHeight);
 
         emit RandomnessSourced(requestId, request.flowHeight, request.evmHeight, randomSource);
 
@@ -242,10 +242,10 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
      */
     function _aggregateRevertibleRandom256() private view returns (uint256) {
         // Call _revertibleRandom() 4 times to aggregate 256 bits of randomness
-        uint256 randomValue = uint256(_revertibleRandom());
-        randomValue |= (uint256(_revertibleRandom()) << 64);
-        randomValue |= (uint256(_revertibleRandom()) << 128);
-        randomValue |= (uint256(_revertibleRandom()) << 192);
+        uint256 randomValue = uint256(CadenceArchUtils._revertibleRandom());
+        randomValue |= (uint256(CadenceArchUtils._revertibleRandom()) << 64);
+        randomValue |= (uint256(CadenceArchUtils._revertibleRandom()) << 128);
+        randomValue |= (uint256(CadenceArchUtils._revertibleRandom()) << 192);
         return randomValue;
     }
 
@@ -273,7 +273,8 @@ abstract contract CadenceRandomConsumer is CadenceArchWrapper {
     function _validateRequest(Request storage request) private view {
         require(!request.fulfilled, "Request already fulfilled");
         require(
-            request.flowHeight < _flowBlockHeight(), "Cannot fulfill request until subsequent Flow network block height"
+            request.flowHeight < CadenceArchUtils._flowBlockHeight(),
+            "Cannot fulfill request until subsequent Flow network block height"
         );
     }
 }
