@@ -179,12 +179,15 @@ abstract contract CadenceRandomConsumer {
     function _getNumberInRange(Xorshift128plus.PRG memory prg, uint64 min, uint64 max) private pure returns (uint64) {
         require(max > min, "Max must be greater than min");
 
-        uint256 value = prg.nextUInt256();
-
         uint64 range = max - min;
         uint64 bitsRequired = _mostSignificantBit(range); // Number of bits needed to cover the range
         uint256 mask = (1 << bitsRequired) - 1; // Create a bitmask to extract relevant bits
+
+        uint256 shiftLimit = 256 / bitsRequired; // Number of shifts needed to cover 256 bits
+        uint256 shifts = 0; // Initialize shift counter
+
         uint64 candidate = 0; // Initialize candidate
+        uint256 value = prg.nextUInt256(); // Assign the first 256 bits of randomness
 
         while (true) {
             candidate = uint64(value & mask); // Apply the bitmask to extract bits
@@ -194,14 +197,17 @@ abstract contract CadenceRandomConsumer {
 
             // Shift by the number of bits covered by the mask
             value = value >> bitsRequired;
-            // Get a new value if we've run out of bits
-            if (value == 0) {
+            shifts++;
+
+            // Get a new value if we've exhausted the current one
+            if (shifts == shiftLimit) {
                 value = prg.nextUInt256();
+                shifts = 0;
             }
         }
-        uint64 randomResult = candidate + min; // Scale candidate to the range [min, max]
-        require(randomResult >= min && randomResult <= max, "Random number out of range");
-        return randomResult;
+
+        // Scale candidate to the range [min, max]
+        return min + candidate;
     }
 
     /**
