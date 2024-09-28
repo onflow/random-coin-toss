@@ -40,7 +40,7 @@ fun setup() {
     // deploy the CoinToss contract from the compiled bytecode
     let deployResult = executeTransaction(
         "../transactions/evm/deploy.cdc",
-        [getCoinTossBytecode(), UInt64(1_000_000), 0.0],
+        [getCoinTossBytecode(), UInt64(15_000_000), 0.0],
         user
     )
     Test.expect(deployResult, Test.beSucceeded())
@@ -55,7 +55,6 @@ fun setup() {
     let depositResult = executeTransaction(
         "../transactions/evm/deposit_flow.cdc",
         [coinTossAddress, 100.0],
-        // [userCOAAddress, 100.0],
         serviceAccount
     )
     Test.expect(depositResult, Test.beSucceeded())
