@@ -37,8 +37,8 @@ access(all) contract Xorshift128plus {
             let seed: [UInt8] = hash.slice(from: 0, upTo: 16)
 
             // Convert the seed bytes to two Word64 values for state initialization
-            let segment0: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 0)
-            let segment1: Word64 = Xorshift128plus.bigEndianBytesToWord64(bytes: seed, start: 8)
+            let segment0: Word64 = Xorshift128plus._bigEndianBytesToWord64(bytes: seed, start: 0)
+            let segment1: Word64 = Xorshift128plus._bigEndianBytesToWord64(bytes: seed, start: 8)
 
             // Ensure the initial state is non-zero
             assert(
@@ -70,6 +70,20 @@ access(all) contract Xorshift128plus {
             let randUInt64: UInt64 = UInt64(Word64(a) + Word64(b))
             return randUInt64
         }
+
+        /// Advances the PRG state and generates the next UInt256 value by concatenating 4 UInt64 values
+        ///
+        /// @return The next UInt256 value
+        ///
+        access(all)
+        fun nextUInt256(): UInt256 {
+            var res = UInt256(self.nextUInt64())
+            res = res | UInt256(self.nextUInt64()) << 64
+            res = res | UInt256(self.nextUInt64()) << 128
+            res = res | UInt256(self.nextUInt64()) << 192
+
+            return res
+        }
     }
 
     /// Helper function to convert an array of big endian bytes to Word64
@@ -79,7 +93,7 @@ access(all) contract Xorshift128plus {
     ///
     /// @return The Word64 value
     ///
-    access(contract) fun bigEndianBytesToWord64(bytes: [UInt8], start: Int): Word64 {
+    access(contract) fun _bigEndianBytesToWord64(bytes: [UInt8], start: Int): Word64 {
         pre {
             start + 8 <= bytes.length:
             "Defined start=".concat(start.toString())
