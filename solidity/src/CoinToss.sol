@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./CadenceRandomConsumer.sol";
+import {CadenceRandomConsumer} from "./CadenceRandomConsumer.sol";
 
 /**
  * @dev This contract is a simple coin toss game where users can place win prizes by flipping a coin as a demonstration
@@ -16,8 +16,8 @@ contract CoinToss is CadenceRandomConsumer {
     // A mapping to store the value sent by the user for each request
     mapping(uint256 => uint256) public openRequests;
 
-    event CoinFlipped(address indexed user, uint256 requestId, uint256 amount);
-    event CoinRevealed(address indexed user, uint256 requestId, uint8 coinFace, uint256 prize);
+    event CoinFlipped(address indexed user, uint256 indexed requestId, uint256 amount);
+    event CoinRevealed(address indexed user, uint256 indexed requestId, uint8 coinFace, uint256 prize);
 
     /**
      * @dev Checks if a user has an open request.
@@ -54,9 +54,10 @@ contract CoinToss is CadenceRandomConsumer {
         // delete the open request from the coinTosses mapping
         delete coinTosses[msg.sender];
 
-        // fulfill the random request
-        uint64 randomResult = _fulfillRandomness(uint32(requestId));
-        uint8 coinFace = uint8(randomResult % 2);
+        // fulfill the random request within the inclusive range [0, 1]
+        // NOTE: Could use % 2 without risk of modulo bias since the range is a multiple of the modulus
+        //  but using _fulfillRandomInRange for demonstration purposes
+        uint8 coinFace = uint8(_fulfillRandomInRange(requestId, 0, 1));
 
         // get the value sent in the flipCoin function & remove the request from the openRequests mapping
         uint256 amount = openRequests[requestId];

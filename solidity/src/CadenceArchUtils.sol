@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
  * contracts can use this contract to fetch the current Flow block height and fetch random numbers from the Cadence
  * runtime.
  */
-abstract contract CadenceArchWrapper {
+library CadenceArchUtils {
     // Cadence Arch pre-compile address
     address public constant cadenceArch = 0x0000000000000000000000010000000000000001;
 
@@ -45,17 +45,13 @@ abstract contract CadenceArchWrapper {
      * @param flowHeight The Flow block height for which to get the random source.
      * @return randomSource The random source for the given Flow block height.
      */
-    function _getRandomSource(uint64 flowHeight) internal view returns (uint64) {
+    function _getRandomSource(uint64 flowHeight) internal view returns (bytes32) {
         (bool ok, bytes memory data) =
             cadenceArch.staticcall(abi.encodeWithSignature("getRandomSource(uint64)", flowHeight));
         require(ok, "Unsuccessful call to Cadence Arch pre-compile when fetching random source");
 
-        // Decode the result as bytes32 and then cast it to uint64
+        // Decode the result as bytes32 & return
         bytes32 result = abi.decode(data, (bytes32));
-
-        // Convert the bytes32 result to uint64 by casting, taking the least significant 8 bytes
-        uint64 output = uint64(uint256(result));
-
-        return output;
+        return result;
     }
 }
