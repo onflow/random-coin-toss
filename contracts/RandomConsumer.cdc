@@ -201,7 +201,9 @@ access(all) contract RandomConsumer {
         /// @return A Request resource
         ///
         access(Commit) fun requestRandomness(): @Request {
-            return <-create Request()
+            let req <-create Request()
+            emit RandomnessRequested(requestUUID: req.uuid, block: req.block)
+            return <-req
         }
 
         /* ----- REVEAL STEP ----- */
@@ -242,6 +244,8 @@ access(all) contract RandomConsumer {
             // Create PRG from the provided request & generate a random number & generate a random number in the range
             let prg = self._getPRGFromRequest(request: <-request)
             let res = RandomConsumer.getNumberInRange(prg: prg, min: min, max: max)
+
+            emit RandomnessFulfilled(requestUUID: reqUUID, randomResult: res)
 
             return res
         }

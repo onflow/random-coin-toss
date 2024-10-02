@@ -25,8 +25,8 @@ access(all) contract CoinToss {
 
     /* --- Events --- */
     //
-    access(all) event CoinTossBet(betAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
-    access(all) event CoinTossReveal(betAmount: UFix64, winningAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event CoinFlipped(betAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event CoinRevealed(betAmount: UFix64, winningAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
 
     /// The Receipt resource is used to store the bet amount and the associated randomness request. By listing the
     /// RandomConsumer.RequestWrapper conformance, this resource inherits all the default implementations of the
@@ -51,7 +51,7 @@ access(all) contract CoinToss {
     /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
     /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
     ///
-    access(all) fun commitCoinToss(bet: @{FungibleToken.Vault}): @Receipt {
+    access(all) fun flipCoin(bet: @{FungibleToken.Vault}): @Receipt {
         pre {
             bet.balance > 0.0:
             "Provided vault.balance=0.0 - must deposit a non-zero amount to commit to a coin toss"
@@ -65,7 +65,7 @@ access(all) contract CoinToss {
             )
         self.reserve.deposit(from: <-bet)
 
-        emit CoinTossBet(betAmount: receipt.betAmount, commitBlock: receipt.getRequestBlock()!, receiptID: receipt.uuid)
+        emit CoinFlipped(betAmount: receipt.betAmount, commitBlock: receipt.getRequestBlock()!, receiptID: receipt.uuid)
 
         return <- receipt
     }
@@ -79,7 +79,7 @@ access(all) contract CoinToss {
     /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
     /// they do.
     ///
-    access(all) fun revealCoinToss(receipt: @Receipt): @{FungibleToken.Vault} {
+    access(all) fun revealCoin(receipt: @Receipt): @{FungibleToken.Vault} {
         pre {
             receipt.request != nil: 
             "The provided receipt has already been revealed"
@@ -106,7 +106,7 @@ access(all) contract CoinToss {
             )
         }
 
-        emit CoinTossReveal(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
+        emit CoinRevealed(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
 
         return <- reward
     }
@@ -114,7 +114,7 @@ access(all) contract CoinToss {
     /// Returns a random number between 0 and 1 using the RandomConsumer.Consumer resource contained in the contract.
     ///
     access(self) fun _randomCoin(request: @RandomConsumer.Request): UInt8 {
-        return self.consumer.fulfillRandomInRange(request: <-request, min: 0, max: 1) as! UInt8
+        return UInt8(self.consumer.fulfillRandomInRange(request: <-request, min: 0, max: 1))
     }
 
     init(multiplier: UFix64) {
