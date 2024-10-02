@@ -1,7 +1,18 @@
 import "RandomBeaconHistory"
 import "Xorshift128plus"
 
+/// This contract is intended to make it easy to consume randomness securely from the Flow protocol's random beacon. It provides
+/// a simple construct to commit to a request, and reveal the randomness in a secure manner as well as helper functions to
+/// generate random numbers in a range without bias.
+///
+/// See an example implementation in the repository: https://github.com/onflow/random-coin-toss
+///
 access(all) contract RandomConsumer {
+
+    /* --- PATHS --- */
+    //
+    /// Canonical path for Consumer storage
+    access(all) let ConsumerStoragePath: StoragePath
 
     /* --- EVENTS --- */
     //
@@ -85,11 +96,39 @@ access(all) contract RandomConsumer {
     access(all) entitlement Commit
     access(all) entitlement Reveal
 
-    /// Interface to allow for a Request to be contained within another resource
+    /// Interface to allow for a Request to be contained within another resource. The existing default implementations
+    /// enable an implementing resource to simple list the conformance without any additional implementation aside from
+    /// the nested Request resource. However, implementations should properly consider the optional type when 
+    /// interacting with the Request resource outside of the default implementations. The post-conditions ensure that
+    /// implementations cannot act dishonestly even if they override the default implementations.
     ///
     access(all) resource interface RequestWrapper {
         /// The Request contained within the resource
         access(all) var request: @Request?
+
+        /// Returns the block height of the Request contained within the resource
+        ///
+        /// @return The block height of the Request or nil if no Request is contained
+        ///
+        access(all) view fun getRequestBlock(): UInt64? {
+            post {
+                result == nil || result! == self.request?.block:
+                "RequestWrapper.getRequestBlock() must return nil or the block height of RequestWrapper.request"
+            }
+            return self.request?.block ?? nil
+        }
+
+        /// Returns whether the Request contained within the resource can be fulfilled or not
+        ///
+        /// @return Whether the Request can be fulfilled
+        ///
+        access(all) view fun canFullfillRequest(): Bool {
+            post {
+                result == self.request?.canFullfill() ?? false:
+                "RequestWrapper.canFullfillRequest() must return the result of RequestWrapper.request.canFullfill()"
+            }
+            return self.request?.canFullfill() ?? false
+        }
 
         /// Pops the Request from the resource and returns it
         ///
@@ -100,8 +139,10 @@ access(all) contract RandomConsumer {
                 self.request != nil: "RequestWrapper.request must not be nil before popRequest"
             }
             post {
-                self.request == nil: "RequestWrapper.request must be nil after popRequest"
-                result.uuid == before((self.request?.uuid)!): "RequestWrapper.request.uuid must match result.uuid"
+                self.request == nil:
+                "RequestWrapper.request must be nil after popRequest"
+                result.uuid == before((self.request?.uuid)!):
+                "RequestWrapper.request.uuid must match result.uuid"
             }
             let req <- self.request <- nil
             return <- req!
@@ -121,16 +162,21 @@ access(all) contract RandomConsumer {
             self.fulfilled = false
         }
 
+        access(all) view fun canFullfill(): Bool {
+            return !self.fulfilled && self.block < getCurrentBlock().height
+        }
+
         /// Returns the Flow's random source for the requested block height
         ///
         /// @return The random source for the requested block height containing at least 16 bytes (128 bits) of entropy
         ///
         access(contract) fun _fulfill(): [UInt8] {
             pre {
-                !self.fulfilled: "Request has already been fulfilled"
+                !self.fulfilled:
+                "Request has already been fulfilled"
                 self.block < getCurrentBlock().height:
-                    "Attempting to fulfill random request before the eligible block height of "
-                    .concat((self.block + 1).toString())
+                "Attempting to fulfill random request before the eligible block height of "
+                .concat((self.block + 1).toString())
             }
             self.fulfilled = true
             let res = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: self.block).value
@@ -186,8 +232,8 @@ access(all) contract RandomConsumer {
         access(Reveal) fun fulfillRandomInRange(request: @Request, min: UInt64, max: UInt64): UInt64 {
             pre {
                 min < max:
-                    "Provided min of ".concat(min.toString()).concat(" and max of ".concat(max.toString())
-                    .concat(" - min must be less than max"))
+                "Provided min of ".concat(min.toString()).concat(" and max of ".concat(max.toString())
+                .concat(" - min must be less than max"))
             }
             let reqUUID = request.uuid
             
@@ -229,5 +275,9 @@ access(all) contract RandomConsumer {
             bits = bits + 1
         }
         return bits
+    }
+
+    init() {
+        self.ConsumerStoragePath = StoragePath(identifier: "RandomConsumer_".concat(self.account.address.toString()))!
     }
 }
