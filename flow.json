@@ -136,7 +136,7 @@
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
+			"key": "a30efdca0c2198cc4d4e013f62072fc3013f9f44c4e1a2ebad09f642588168ad"
 		},
 		"tooling-mainnet": {
 			"address": "45caec600164c9e6",
@@ -159,7 +159,12 @@
 		"emulator": {
 			"emulator-account": [
 				"Xorshift128plus",
-				"CoinToss",
+				"RandomConsumer", {
+					"name": "CoinToss",
+					"args": [
+						{ "type": "UFix64","value": "2.0" }
+					]
+				},
 				"RandomResultStorage"
 			]
 		},
