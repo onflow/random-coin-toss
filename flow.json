@@ -4,6 +4,7 @@
 			"source": "./contracts/CoinToss.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000007",
 				"testnet": "d1299e755e8be5e7"
 			}
 		},
@@ -11,7 +12,8 @@
 		"RandomConsumer": {
 			"source": "./contracts/RandomConsumer.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7"
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000007"
 			}
 		},
 		"Xorshift128plus": {
@@ -19,6 +21,7 @@
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "45caec600164c9e6",
+				"testing": "0000000000000007",
 				"testnet": "ed24dbe901028c5c"
 			}
 		}
@@ -119,6 +122,7 @@
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
 		"previewnet": "access.previewnet.nodes.onflow.org:9000",
+		"testing": "127.0.0.1:3569",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {

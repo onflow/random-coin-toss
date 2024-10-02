@@ -23,3 +23,13 @@ fun getEVMBalance(_ evmAddressHex: String): UFix64 {
     Test.expect(res, Test.beSucceeded())
     return res.returnValue! as! UFix64
 }
+
+access(all)
+fun getCadenceBalance(_ address: Address): UFix64 {
+    let res = _executeScript(
+        "./scripts/get_cadence_balance.cdc",
+        [address]
+    )
+    Test.expect(res, Test.beSucceeded())
+    return res.returnValue! as! UFix64
+}

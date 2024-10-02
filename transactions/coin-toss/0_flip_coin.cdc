@@ -13,7 +13,7 @@ transaction(betAmount: UFix64) {
         let bet <- flowVault.withdraw(amount: betAmount)
         
         // Commit my bet and get a receipt
-        let receipt <- CoinToss.commitCoinToss(bet: <-bet)
+        let receipt <- CoinToss.flipCoin(bet: <-bet)
         
         // Check that I don't already have a receipt stored
         if signer.storage.type(at: CoinToss.ReceiptStoragePath) != nil {
