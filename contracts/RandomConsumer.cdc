@@ -49,10 +49,9 @@ access(all) contract RandomConsumer {
     access(all) fun getNumberInRange(prg: Xorshift128plus.PRG, min: UInt64, max: UInt64): UInt64 {
         pre {
             min < max:
-```suggestion
                 "RandomConsumer.getNumberInRange: Cannot get random number with the provided range! "
-                .concat(" The min must be less than the max. Provided min of "
-                .concat(min.toString()).concat(" and max of ".concat(max.toString())
+                .concat(" The min must be less than the max. Provided min of ")
+                .concat(min.toString()).concat(" and max of ".concat(max.toString()))
         }
         let range = max - min // Calculate the inclusive range of the random number
         let bitsRequired = UInt256(self._mostSignificantBit(range)) // Number of bits needed to cover the range
@@ -239,8 +238,8 @@ access(all) contract RandomConsumer {
             pre {
                 min < max:
                 "RandomConsumer.Consumer.fulfillRandomInRange(): Cannot fulfill random number with the provided range! "
-                .concat(" The min must be less than the max. Provided min of "
-                .concat(min.toString()).concat(" and max of ".concat(max.toString())
+                .concat(" The min must be less than the max. Provided min of ")
+                .concat(min.toString()).concat(" and max of ".concat(max.toString()))
             }
             let reqUUID = request.uuid
             

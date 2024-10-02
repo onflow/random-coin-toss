@@ -86,10 +86,9 @@ access(all) contract CoinToss {
             "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt has already been revealed."
             receipt.getRequestBlock()! <= getCurrentBlock().height:
             "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt was committed for block height ".concat(receipt.getRequestBlock()!.toString())
-            .concat( which is greater than the current block height of ")
+            .concat(" which is greater than the current block height of ")
             .concat(getCurrentBlock().height.toString())
             .concat(". The reveal can only happen after the committed block has passed.")
-            )
         }
         let betAmount = receipt.betAmount
         let commitBlock = receipt.getRequestBlock()!
