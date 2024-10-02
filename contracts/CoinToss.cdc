@@ -114,6 +114,9 @@ access(all) contract CoinToss {
     }
 
     /// Returns a random number between 0 and 1 using the RandomConsumer.Consumer resource contained in the contract.
+    /// For the purposes of this contract, a simple modulo operation could have been used though this is not the case
+    /// for all ranges. Using the Consumer.fulfillRandomInRange function ensures that we can get a random number
+    /// within any range without a risk of bias.
     ///
     access(self) fun _randomCoin(request: @RandomConsumer.Request): UInt8 {
         return UInt8(self.consumer.fulfillRandomInRange(request: <-request, min: 0, max: 1))

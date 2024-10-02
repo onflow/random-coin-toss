@@ -26,7 +26,8 @@ access(all) contract RandomConsumer {
     // PUBLIC FUNCTIONS
     ///////////////////
 
-    /// Retrieves a revertible random number in the range [min, max]
+    /// Retrieves a revertible random number in the range [min, max]. By leveraging the Cadence's revertibleRandom
+    /// method, this function ensures that the random number is generated within range without risk of bias.
     ///
     /// @param min: The minimum value of the range
     /// @param max: The maximum value of the range
@@ -100,10 +101,10 @@ access(all) contract RandomConsumer {
     access(all) entitlement Reveal
 
     /// Interface to allow for a Request to be contained within another resource. The existing default implementations
-    /// enable an implementing resource to simple list the conformance without any additional implementation aside from
-    /// the nested Request resource. However, implementations should properly consider the optional type when 
-    /// interacting with the Request resource outside of the default implementations. The post-conditions ensure that
-    /// implementations cannot act dishonestly even if they override the default implementations.
+    /// enable an implementing resource to simply list the conformance without any additional implementation aside from
+    /// the inner Request resource. However, implementations should properly consider the optional when interacting
+    /// with the inner resource outside of the default implementations. The post-conditions ensure that implementations
+    /// cannot act dishonestly even if they override the default implementations.
     ///
     access(all) resource interface RequestWrapper {
         /// The Request contained within the resource
@@ -226,7 +227,10 @@ access(all) contract RandomConsumer {
             return res
         }
 
-        /// Fulfills a random request, returning a random number in the range [min, max]
+        /// Fulfills a random request, returning a random number in the range [min, max] without bias. Developers may be
+        /// tempted to use a simple modulo operation to generate random numbers in a range, but this can introduce bias
+        /// when the range is not a multiple of the modulus. This function ensures that the random number is generated
+        /// without bias using a variation on rejection sampling.
         ///
         /// @param request: The Request to fulfill
         /// @param min: The minimum value of the range
