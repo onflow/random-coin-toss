@@ -54,9 +54,10 @@ access(all) contract CoinToss {
     access(all) fun flipCoin(bet: @{FungibleToken.Vault}): @Receipt {
         pre {
             bet.balance > 0.0:
-            "Provided vault.balance=0.0 - must deposit a non-zero amount to commit to a coin toss"
+            "CoinToss.flipCoin: Cannot commit to the coin toss! The provided vault's balance is 0.0. "
+            .concat("A non-zero amount is required to commit to a coin toss")
             bet.getType() == Type<@FlowToken.Vault>():
-            "Invalid vault type=".concat(bet.getType().identifier).concat(" - must provide a FLOW vault")
+            "CoinToss.flipCoin: Cannot commit coin toss! The type of the provided vault <".concat(bet.getType().identifier).concat("> is invalid. The vault must be a FlowToken Vault.")
         }
         let request <- self.consumer.requestRandomness()
         let receipt <- create Receipt(
@@ -82,10 +83,12 @@ access(all) contract CoinToss {
     access(all) fun revealCoin(receipt: @Receipt): @{FungibleToken.Vault} {
         pre {
             receipt.request != nil: 
-            "The provided receipt has already been revealed"
+            "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt has already been revealed."
             receipt.getRequestBlock()! <= getCurrentBlock().height:
-            "Provided receipt committed at block height=".concat(receipt.getRequestBlock()!.toString()).concat(
-                " - must wait until at least the following block to reveal"
+            "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt was committed for block height ".concat(receipt.getRequestBlock()!.toString())
+            .concat( which is greater than the current block height of ")
+            .concat(getCurrentBlock().height.toString())
+            .concat(". The reveal can only happen after the committed block has passed.")
             )
         }
         let betAmount = receipt.betAmount

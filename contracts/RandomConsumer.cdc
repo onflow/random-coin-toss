@@ -37,8 +37,8 @@ access(all) contract RandomConsumer {
         return revertibleRandom<UInt64>(modulo: max - min + 1)
     }
 
-    /// Retrieves a random number in the range [min, max] using the provided PRG to source additional randomness if
-    /// needed
+    /// Retrieves a random number in the range [min, max] using the provided PRG 
+    /// to source additional randomness if needed
     ///
     /// @param prg: The PRG to use for random number generation
     /// @param min: The minimum value of the range
@@ -49,8 +49,10 @@ access(all) contract RandomConsumer {
     access(all) fun getNumberInRange(prg: Xorshift128plus.PRG, min: UInt64, max: UInt64): UInt64 {
         pre {
             min < max:
-                "Provided min of ".concat(min.toString()).concat(" and max of ".concat(max.toString())
-                .concat(" - min must be less than max"))
+```suggestion
+                "RandomConsumer.getNumberInRange: Cannot get random number with the provided range! "
+                .concat(" The min must be less than the max. Provided min of "
+                .concat(min.toString()).concat(" and max of ".concat(max.toString())
         }
         let range = max - min // Calculate the inclusive range of the random number
         let bitsRequired = UInt256(self._mostSignificantBit(range)) // Number of bits needed to cover the range
@@ -115,7 +117,7 @@ access(all) contract RandomConsumer {
         access(all) view fun getRequestBlock(): UInt64? {
             post {
                 result == nil || result! == self.request?.block:
-                "RequestWrapper.getRequestBlock() must return nil or the block height of RequestWrapper.request"
+                "RandomConsumer.RequestWrapper.getRequestBlock(): Must return nil or the block height of RequestWrapper.request"
             }
             return self.request?.block ?? nil
         }
@@ -127,7 +129,7 @@ access(all) contract RandomConsumer {
         access(all) view fun canFullfillRequest(): Bool {
             post {
                 result == self.request?.canFullfill() ?? false:
-                "RequestWrapper.canFullfillRequest() must return the result of RequestWrapper.request.canFullfill()"
+                "RandomConsumer.RequestWrapper.canFullfillRequest(): Must return the result of RequestWrapper.request.canFullfill()"
             }
             return self.request?.canFullfill() ?? false
         }
@@ -138,13 +140,13 @@ access(all) contract RandomConsumer {
         ///
         access(Reveal) fun popRequest(): @Request {
             pre {
-                self.request != nil: "RequestWrapper.request must not be nil before popRequest"
+                self.request != nil: "RandomConsumer.RequestWrapper.popRequest(): Request must not be nil before popRequest"
             }
             post {
                 self.request == nil:
-                "RequestWrapper.request must be nil after popRequest"
+                "RandomConsumer.RequestWrapper.popRequest(): Request must be nil after popRequest"
                 result.uuid == before((self.request?.uuid)!):
-                "RequestWrapper.request.uuid must match result.uuid"
+                "RandomConsumer.RequestWrapper.popRequest(): Request uuid must match result uuid"
             }
             let req <- self.request <- nil
             return <- req!
@@ -165,7 +167,7 @@ access(all) contract RandomConsumer {
         }
 
         access(all) view fun canFullfill(): Bool {
-            return !self.fulfilled && self.block < getCurrentBlock().height
+            return !self.fulfilled && getCurrentBlock().height >= self.block
         }
 
         /// Returns the Flow's random source for the requested block height
@@ -175,9 +177,9 @@ access(all) contract RandomConsumer {
         access(contract) fun _fulfill(): [UInt8] {
             pre {
                 !self.fulfilled:
-                "Request has already been fulfilled"
+                "RandomConsumer.Request.fulfill(): The random request has already been fulfilled."
                 self.block < getCurrentBlock().height:
-                "Attempting to fulfill random request before the eligible block height of "
+                "RandomConsumer.Request.fulfill(): Cannot fulfill random request before the eligible block height of "
                 .concat((self.block + 1).toString())
             }
             self.fulfilled = true
@@ -236,8 +238,9 @@ access(all) contract RandomConsumer {
         access(Reveal) fun fulfillRandomInRange(request: @Request, min: UInt64, max: UInt64): UInt64 {
             pre {
                 min < max:
-                "Provided min of ".concat(min.toString()).concat(" and max of ".concat(max.toString())
-                .concat(" - min must be less than max"))
+                "RandomConsumer.Consumer.fulfillRandomInRange(): Cannot fulfill random number with the provided range! "
+                .concat(" The min must be less than the max. Provided min of "
+                .concat(min.toString()).concat(" and max of ".concat(max.toString())
             }
             let reqUUID = request.uuid
             
