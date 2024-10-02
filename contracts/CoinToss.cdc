@@ -1,3 +1,4 @@
+import "Burner"
 import "FungibleToken"
 import "FlowToken"
 
@@ -93,7 +94,7 @@ access(all) contract CoinToss {
 
         let coin = self._randomCoin(request: <-receipt.popRequest())
 
-        destroy receipt
+        Burner.burn(<-receipt)
 
         // Deposit the reward into a reward vault if the coin toss was won
         let reward <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
@@ -130,7 +131,8 @@ access(all) contract CoinToss {
         // Create a RandomConsumer.Consumer resource
         self.consumer <-RandomConsumer.createConsumer()
 
-
+        // Set the ReceiptStoragePath to a unique path for this contract - appending the address to the identifier
+        // prevents storage collisions with other objects in user's storage
         self.ReceiptStoragePath = StoragePath(identifier: "CoinTossReceipt_".concat(self.account.address.toString()))!
     }
 }

@@ -1,3 +1,5 @@
+import "Burner"
+
 import "RandomBeaconHistory"
 import "Xorshift128plus"
 
@@ -255,7 +257,7 @@ access(all) contract RandomConsumer {
         access(self) fun _getPRGFromRequest(request: @Request): Xorshift128plus.PRG {
             let source = request._fulfill()
             let salt = request.uuid.toBigEndianBytes()
-            destroy request
+            Burner.burn(<-request)
 
             return Xorshift128plus.PRG(sourceOfRandomness: source, salt: salt)
         }
