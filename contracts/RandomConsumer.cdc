@@ -35,7 +35,7 @@ access(all) contract RandomConsumer {
     /// @return A random number in the range [min, max]
     ///
     access(all) fun getRevertibleRandomInRange(min: UInt64, max: UInt64): UInt64 {
-        return revertibleRandom<UInt64>(modulo: max - min + 1)
+        return min + revertibleRandom<UInt64>(modulo: max - min + 1)
     }
 
     /// Retrieves a random number in the range [min, max] using the provided PRG 
