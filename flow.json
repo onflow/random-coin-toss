@@ -4,15 +4,24 @@
 			"source": "./contracts/CoinToss.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000007",
 				"testnet": "d1299e755e8be5e7"
 			}
 		},
 		"RandomResultStorage": "./contracts/test/RandomResultStorage.cdc",
+		"RandomConsumer": {
+			"source": "./contracts/RandomConsumer.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000007"
+			}
+		},
 		"Xorshift128plus": {
 			"source": "./contracts/Xorshift128plus.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "45caec600164c9e6",
+				"testing": "0000000000000007",
 				"testnet": "ed24dbe901028c5c"
 			}
 		}
@@ -113,6 +122,7 @@
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
 		"previewnet": "access.previewnet.nodes.onflow.org:9000",
+		"testing": "127.0.0.1:3569",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
@@ -126,7 +136,7 @@
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "baecdf71ce11309b2dc51df3c9e71379e81134d364e600425312f6599a5f1cdf"
+			"key": "a30efdca0c2198cc4d4e013f62072fc3013f9f44c4e1a2ebad09f642588168ad"
 		},
 		"tooling-mainnet": {
 			"address": "45caec600164c9e6",
@@ -149,7 +159,12 @@
 		"emulator": {
 			"emulator-account": [
 				"Xorshift128plus",
-				"CoinToss",
+				"RandomConsumer", {
+					"name": "CoinToss",
+					"args": [
+						{ "type": "UFix64","value": "2.0" }
+					]
+				},
 				"RandomResultStorage"
 			]
 		},

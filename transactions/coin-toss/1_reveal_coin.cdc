@@ -12,7 +12,7 @@ transaction {
             ?? panic("No Receipt found in storage at path=".concat(CoinToss.ReceiptStoragePath.toString()))
 
         // Reveal by redeeming my receipt - fingers crossed!
-        let winnings <- CoinToss.revealCoinToss(receipt: <-receipt)
+        let winnings <- CoinToss.revealCoin(receipt: <-receipt)
 
         if winnings.balance > 0.0 {
             // Deposit winnings into my FlowToken Vault

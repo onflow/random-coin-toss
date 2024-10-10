@@ -1,8 +1,8 @@
+import "Burner"
 import "FungibleToken"
 import "FlowToken"
 
-import "RandomBeaconHistory"
-import "Xorshift128plus"
+import "RandomConsumer"
 
 /// CoinToss is a simple game contract showcasing the safe use of onchain randomness by way of a commit-reveal sheme.
 ///
@@ -12,9 +12,12 @@ import "Xorshift128plus"
 /// NOTE: This contract is for demonstration purposes only and is not intended to be used in a production environment.
 ///
 access(all) contract CoinToss {
-
+    /// The multiplier used to calculate the winnings of a successful coin toss
+    access(all) let multiplier: UFix64
     /// The Vault used by the contract to store funds.
     access(self) let reserve: @FlowToken.Vault
+    /// The RandomConsumer.Consumer resource used to request & fulfill randomness
+    access(self) let consumer: @RandomConsumer.Consumer
 
     /// The canonical path for common Receipt storage
     /// Note: production systems would consider handling path collisions
@@ -22,18 +25,24 @@ access(all) contract CoinToss {
 
     /* --- Events --- */
     //
-    access(all) event CoinTossBet(betAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
-    access(all) event CoinTossReveal(betAmount: UFix64, winningAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event CoinFlipped(betAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event CoinRevealed(betAmount: UFix64, winningAmount: UFix64, commitBlock: UInt64, receiptID: UInt64)
 
-    /// The Receipt resource is used to store the bet amount and block height at which the bet was committed.
+    /// The Receipt resource is used to store the bet amount and the associated randomness request. By listing the
+    /// RandomConsumer.RequestWrapper conformance, this resource inherits all the default implementations of the
+    /// interface. This is why the Receipt resource has access to the getRequestBlock() and popRequest() functions
+    /// without explicitly defining them.
     ///
-    access(all) resource Receipt {
+    access(all) resource Receipt : RandomConsumer.RequestWrapper {
+        /// The amount bet by the user
         access(all) let betAmount: UFix64
-        access(all) let commitBlock: UInt64
+        /// The associated randomness request which contains the block height at which the request was made
+        /// and whether the request has been fulfilled.
+        access(all) var request: @RandomConsumer.Request?
 
-        init(betAmount: UFix64) {
+        init(betAmount: UFix64, request: @RandomConsumer.Request) {
             self.betAmount = betAmount
-            self.commitBlock = getCurrentBlock().height
+            self.request <- request
         }
     }
 
@@ -42,19 +51,22 @@ access(all) contract CoinToss {
     /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
     /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
     ///
-    access(all) fun commitCoinToss(bet: @{FungibleToken.Vault}): @Receipt {
+    access(all) fun flipCoin(bet: @{FungibleToken.Vault}): @Receipt {
         pre {
             bet.balance > 0.0:
-            "Provided vault.balance=0.0 - must deposit a non-zero amount to commit to a coin toss"
+            "CoinToss.flipCoin: Cannot commit to the coin toss! The provided vault's balance is 0.0. "
+            .concat("A non-zero amount is required to commit to a coin toss")
             bet.getType() == Type<@FlowToken.Vault>():
-            "Invalid vault type=".concat(bet.getType().identifier).concat(" - must provide a FLOW vault")
+            "CoinToss.flipCoin: Cannot commit coin toss! The type of the provided vault <".concat(bet.getType().identifier).concat("> is invalid. The vault must be a FlowToken Vault.")
         }
+        let request <- self.consumer.requestRandomness()
         let receipt <- create Receipt(
-                betAmount: bet.balance
+                betAmount: bet.balance,
+                request: <-request
             )
         self.reserve.deposit(from: <-bet)
 
-        emit CoinTossBet(betAmount: receipt.betAmount, commitBlock: receipt.commitBlock, receiptID: receipt.uuid)
+        emit CoinFlipped(betAmount: receipt.betAmount, commitBlock: receipt.getRequestBlock()!, receiptID: receipt.uuid)
 
         return <- receipt
     }
@@ -62,69 +74,58 @@ access(all) contract CoinToss {
     /* --- Reveal --- */
     //
     /// Here the caller provides the Receipt given to them at commitment. The contract then "flips a coin" with
-    /// randomCoin(), providing the committed block height and salting with the Receipts unique identifier.
-    /// If result is 1, user loses, if it's 0 the user doubles their bet. Note that the caller could condition the
+    /// _randomCoin(), providing the Receipt's contained Request.
+    ///
+    /// If result is 1, user loses, but if it's 0 the user doubles their bet. Note that the caller could condition the
     /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
     /// they do.
     ///
-    access(all) fun revealCoinToss(receipt: @Receipt): @{FungibleToken.Vault} {
+    access(all) fun revealCoin(receipt: @Receipt): @{FungibleToken.Vault} {
         pre {
-            receipt.commitBlock <= getCurrentBlock().height:
-            "Provided receipt committed at block height=".concat(receipt.commitBlock.toString()).concat(
-                " - must wait until at least the following block to reveal"
+            receipt.request != nil: 
+            "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt has already been revealed."
+            receipt.getRequestBlock()! <= getCurrentBlock().height:
+            "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt was committed for block height ".concat(receipt.getRequestBlock()!.toString())
+            .concat(" which is greater than the current block height of ")
+            .concat(getCurrentBlock().height.toString())
+            .concat(". The reveal can only happen after the committed block has passed.")
+        }
+        let betAmount = receipt.betAmount
+        let commitBlock = receipt.getRequestBlock()!
+        let receiptID = receipt.uuid
+
+        let coin = self._randomCoin(request: <-receipt.popRequest())
+
+        Burner.burn(<-receipt)
+
+        // Deposit the reward into a reward vault if the coin toss was won
+        let reward <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
+        if coin == 0 {
+            let winningsAmount = betAmount * self.multiplier
+            let winnings <- self.reserve.withdraw(amount: winningsAmount)
+            reward.deposit(
+                from: <-winnings
             )
         }
 
-        let betAmount = receipt.betAmount
-        let commitBlock = receipt.commitBlock
-        let receiptID = receipt.uuid
-
-        // self.randomCoin() errors if commitBlock <= current block height in call to
-        // RandomBeaconHistory.sourceOfRandomness()
-        let coin = self.randomCoin(atBlockHeight: receipt.commitBlock, salt: receipt.uuid)
-
-        destroy receipt
-
-        if coin == 1 {
-            emit CoinTossReveal(betAmount: betAmount, winningAmount: 0.0, commitBlock: commitBlock, receiptID: receiptID)
-            return <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
-        }
-
-        let reward <- self.reserve.withdraw(amount: betAmount * 2.0)
-
-        emit CoinTossReveal(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
+        emit CoinRevealed(betAmount: betAmount, winningAmount: reward.balance, commitBlock: commitBlock, receiptID: receiptID)
 
         return <- reward
     }
 
-    /// Helper method using RandomBeaconHistory to retrieve a source of randomness for a specific block height and the
-    /// given salt to instantiate a PRG object. A randomly generated UInt64 is then reduced by bitwise operation to
-    /// UInt8 value of 1 or 0 and returned.
+    /// Returns a random number between 0 and 1 using the RandomConsumer.Consumer resource contained in the contract.
+    /// For the purposes of this contract, a simple modulo operation could have been used though this is not the case
+    /// for all ranges. Using the Consumer.fulfillRandomInRange function ensures that we can get a random number
+    /// within any range without a risk of bias.
     ///
-    access(all) fun randomCoin(atBlockHeight: UInt64, salt: UInt64): UInt8 {
-        // query the Random Beacon history core-contract - if `blockHeight` <= current block height, panic & revert
-        let sourceOfRandomness = RandomBeaconHistory.sourceOfRandomness(atBlockHeight: atBlockHeight)
-        assert(
-            sourceOfRandomness.blockHeight == atBlockHeight,
-            message: "Invalid response: Requested blockHeight=".concat(atBlockHeight.toString()).concat(
-                " but received random source block height=".concat(sourceOfRandomness.blockHeight.toString())
-            )
-        )
-
-        // instantiate a PRG object, seeding a source of randomness with `salt` and returns a pseudo-random
-        // generator object.
-        let prg = Xorshift128plus.PRG(
-                sourceOfRandomness: sourceOfRandomness.value,
-                salt: salt.toBigEndianBytes()
-            )
-
-        // derive a 64-bit random using the PRG object and reduce to a UInt8 value of 1 or 0
-        let rand = prg.nextUInt64()
-
-        return UInt8(rand & 1)
+    access(self) fun _randomCoin(request: @RandomConsumer.Request): UInt8 {
+        return UInt8(self.consumer.fulfillRandomInRange(request: <-request, min: 0, max: 1))
     }
 
-    init() {
+    init(multiplier: UFix64) {
+        // Initialize the contract with a multiplier for the winnings
+        self.multiplier = multiplier
+        // Create a FlowToken.Vault to store the contract's funds
         self.reserve <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
         let seedVault = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(
                 from: /storage/flowTokenVault
@@ -132,7 +133,11 @@ access(all) contract CoinToss {
         self.reserve.deposit(
             from: <-seedVault.withdraw(amount: 1000.0)
         )
+        // Create a RandomConsumer.Consumer resource
+        self.consumer <-RandomConsumer.createConsumer()
 
+        // Set the ReceiptStoragePath to a unique path for this contract - appending the address to the identifier
+        // prevents storage collisions with other objects in user's storage
         self.ReceiptStoragePath = StoragePath(identifier: "CoinTossReceipt_".concat(self.account.address.toString()))!
     }
 }
