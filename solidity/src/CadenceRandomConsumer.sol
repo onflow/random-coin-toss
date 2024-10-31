@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+// SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.19;
 
 import {CadenceArchUtils} from "./CadenceArchUtils.sol";
 import {Xorshift128plus} from "./Xorshift128plus.sol";
