@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+// SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.19;
 
 /**
  * @dev This library implements the Xorshift128+ pseudo-random number generator (PRG) algorithm.
