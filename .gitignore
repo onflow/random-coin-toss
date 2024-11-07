@@ -12,3 +12,6 @@ coverage.json
 # Foundry directories
 cache/
 out/
+
+# Misc local files
+.DS_Store
