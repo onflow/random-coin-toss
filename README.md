@@ -69,8 +69,9 @@ Given that Flow has both Cadence and EVM runtimes, commit-reveal patterns coveri
 
 |Contract|Testnet|Mainnet|
 |---|---|---|
-|[CoinToss.cdc](./contracts/CoinToss.cdc)|[0xd1299e755e8be5e7](https://contractbrowser.com/A.d1299e755e8be5e7.CoinToss)|N/A|
+|[CoinToss.cdc](./contracts/CoinToss.cdc)|[0xb6c99d7ff216a684](https://contractbrowser.com/A.b6c99d7ff216a684.CoinToss)|N/A|
 |[Xorshift128plus.cdc](./contracts/Xorshift128plus.cdc)|[0xed24dbe901028c5c](https://contractbrowser.com/A.ed24dbe901028c5c.Xorshift128plus)|[0x45caec600164c9e6](https://contractbrowser.com/A.45caec600164c9e6.Xorshift128plus)|
+|[RandomConsumer.cdc](./contracts/RandomConsumer.cdc)|[0xed24dbe901028c5c](https://contractbrowser.com/A.ed24dbe901028c5c.RandomConsumer)|[0x45caec600164c9e6](https://contractbrowser.com/A.45caec600164c9e6.RandomConsumer)|
 |[CoinToss.sol](./contracts/CoinToss.sol)|[0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1](https://evm-testnet.flowscan.io/address/0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1?tab=contract_code)|N/A|
 
 > :information_source: To use the Solidity dependencies demonstrated in the `CoinToss.sol` example, see the [`@onflow/flow-sol-utils` repository](https://github.com/onflow/flow-sol-utils).
