@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity 0.8.19;
 
-import {CadenceRandomConsumer} from "./CadenceRandomConsumer.sol";
+// import {CadenceRandomConsumer} from "./CadenceRandomConsumer.sol";
+import {CadenceRandomConsumer} from "@flow-sol-utils/src/random/CadenceRandomConsumer.sol";
 
 /**
  * @dev This contract is a simple coin toss game where users can place win prizes by flipping a coin as a demonstration
