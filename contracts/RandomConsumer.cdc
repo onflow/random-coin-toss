@@ -21,6 +21,7 @@ access(all) contract RandomConsumer {
     access(all) event RandomnessRequested(requestUUID: UInt64, block: UInt64)
     access(all) event RandomnessSourced(requestUUID: UInt64, block: UInt64, randomSource: [UInt8])
     access(all) event RandomnessFulfilled(requestUUID: UInt64, randomResult: UInt64)
+    access(all) event RandomnessFulfilledWithPRG(requestUUID: UInt64)
 
     ///////////////////
     // PUBLIC FUNCTIONS
@@ -38,7 +39,7 @@ access(all) contract RandomConsumer {
         return min + revertibleRandom<UInt64>(modulo: max - min + 1)
     }
 
-    /// Retrieves a random number in the range [min, max] using the provided PRG 
+    /// Retrieves a random number in the range [min, max] using the provided PRG
     /// to source additional randomness if needed
     ///
     /// @param prg: The PRG to use for random number generation
@@ -80,11 +81,11 @@ access(all) contract RandomConsumer {
                 shifts = 0
             }
         }
-        
+
         // Scale candidate to the range [min, max]
         return min + candidate
     }
-    
+
     /// Returns a new Consumer resource
     ///
     /// @return A Consumer resource
@@ -225,7 +226,7 @@ access(all) contract RandomConsumer {
             let reqUUID = request.uuid
 
             // Create PRG from the provided request & generate a random number
-            let prg = self._getPRGFromRequest(request: <-request)
+            let prg = self.fulfillWithPRG(request: <-request)
             let res = prg.nextUInt64()
 
             emit RandomnessFulfilled(requestUUID: reqUUID, randomResult: res)
@@ -251,9 +252,9 @@ access(all) contract RandomConsumer {
                 .concat(min.toString()).concat(" and max of ".concat(max.toString()))
             }
             let reqUUID = request.uuid
-            
+
             // Create PRG from the provided request & generate a random number & generate a random number in the range
-            let prg = self._getPRGFromRequest(request: <-request)
+            let prg = self.fulfillWithPRG(request: <-request)
             let res = RandomConsumer.getNumberInRange(prg: prg, min: min, max: max)
 
             emit RandomnessFulfilled(requestUUID: reqUUID, randomResult: res)
@@ -261,15 +262,22 @@ access(all) contract RandomConsumer {
             return res
         }
 
-        /* --- INTERNAL --- */
-        //
-        /// Creates a PRG from a Request, using the request's block height source of randomness and UUID as a salt
+        /// Creates a PRG from a Request, using the request's block height source of randomness and UUID as a salt.
+        /// This method fulfills the request, returning a PRG so that consumers can generate any number of random values
+        /// using the request's source of randomness, seeded with the request's UUID as a salt.
+        ///
+        /// NOTE: The intention in exposing this method is for consumers to be able to generate several random values
+        /// per request, and the returned PRG should be used in association to a single request. IOW, while the PRG is
+        /// a storable object, it should be treated as ephemeral, discarding once all values have been generated
+        /// corresponding to the fulfilled request.
         ///
         /// @param request: The Request to use for PRG creation
         ///
-        /// @return A PRG object
+        /// @return A PRG object from which to generate random values in assocation with the fulfilled request
         ///
-        access(self) fun _getPRGFromRequest(request: @Request): Xorshift128plus.PRG {
+        access(Reveal) fun fulfillWithPRG(request: @Request): Xorshift128plus.PRG {
+            emit RandomnessFulfilledWithPRG(requestUUID: request.uuid)
+
             let source = request._fulfill()
             let salt = request.uuid.toBigEndianBytes()
             Burner.burn(<-request)
