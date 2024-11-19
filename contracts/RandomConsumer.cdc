@@ -169,7 +169,7 @@ access(all) contract RandomConsumer {
         /// Returns whether the request can be fulfilled as defined by whether it has already been fulfilled and the
         /// created block height has been surpassed.
         ///
-        /// @param: True if it can be fulfille, false otherwise
+        /// @param: True if it can be fulfilled, false otherwise
         ///
         access(all) view fun canFullfill(): Bool {
             return !self.fulfilled && getCurrentBlock().height > self.block
