@@ -42,7 +42,6 @@ fun testRequestRandomnessSucceeds() {
     Test.expect(requestCanFulfillRes, Test.beSucceeded())
     let requestHeight = requestHeightRes.returnValue! as! UInt64
     let requestCanFulfill = requestCanFulfillRes.returnValue! as! Bool
-    
 
     Test.assertEqual(expectedHeight, requestHeight)
     Test.assertEqual(false, requestCanFulfill)
@@ -62,4 +61,13 @@ fun testFulfillRandomnessSucceeds() {
 
     let fulfillRes = executeTransaction("./transactions/fulfill_random_request.cdc", [requestStoragePath], signer)
     Test.expect(fulfillRes, Test.beSucceeded())
+}
+
+access(all)
+fun testGetNumberInRangeUpdatesStateSucceeds() {
+    let diffPRGRes = executeScript("./scripts/prg_state_advances_on_range_results.cdc", [])
+    Test.expect(diffPRGRes, Test.beSucceeded())
+
+    let diff = diffPRGRes.returnValue! as! Bool
+    Test.assertEqual(true, diff)
 }
