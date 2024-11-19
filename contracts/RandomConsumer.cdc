@@ -226,7 +226,7 @@ access(all) contract RandomConsumer {
             let reqUUID = request.uuid
 
             // Create PRG from the provided request & generate a random number
-            let prg = self.fulfillWithPRG(request: <-request)
+            let prg = self._getPRGFromRequest(request: <-request)
             let res = prg.nextUInt64()
 
             emit RandomnessFulfilled(requestUUID: reqUUID, randomResult: res)
@@ -254,7 +254,7 @@ access(all) contract RandomConsumer {
             let reqUUID = request.uuid
 
             // Create PRG from the provided request & generate a random number & generate a random number in the range
-            let prg = self.fulfillWithPRG(request: <-request)
+            let prg = self._getPRGFromRequest(request: <-request)
             let res = RandomConsumer.getNumberInRange(prg: prg, min: min, max: max)
 
             emit RandomnessFulfilled(requestUUID: reqUUID, randomResult: res)
@@ -276,8 +276,23 @@ access(all) contract RandomConsumer {
         /// @return A PRG object from which to generate random values in assocation with the fulfilled request
         ///
         access(Reveal) fun fulfillWithPRG(request: @Request): Xorshift128plus.PRG {
-            emit RandomnessFulfilledWithPRG(requestUUID: request.uuid)
+            let reqUUID = request.uuid
+            let prg = self._getPRGFromRequest(request: <-request)
 
+            emit RandomnessFulfilledWithPRG(requestUUID: reqUUID)
+
+            return prg
+        }
+
+        /// Internal method to retrieve a PRG from a request. Doing so fulfills the request, and is intended for
+        /// internal functionality serving a single random value.
+        ///
+        /// @param request: The Request to use for PRG creation
+        ///
+        /// @return A PRG object from which this Consumer can generate a single random value to fulfill the request
+        ///
+        access(self)
+        fun _getPRGFromRequest(request: @Request): Xorshift128plus.PRG {
             let source = request._fulfill()
             let salt = request.uuid.toBigEndianBytes()
             Burner.burn(<-request)
