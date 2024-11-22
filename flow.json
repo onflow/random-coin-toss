@@ -12,6 +12,7 @@
 			"source": "./contracts/RandomConsumer.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "45caec600164c9e6",
 				"testing": "0000000000000007",
 				"testnet": "ed24dbe901028c5c"
 			}

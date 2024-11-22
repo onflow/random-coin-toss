@@ -28,7 +28,7 @@ access(all) contract RandomConsumer {
     ///////////////////
 
     /// Retrieves a revertible random number in the range [min, max]. By leveraging the Cadence's revertibleRandom
-    /// method, this function ensures that the random number is generated within range without risk of bias.
+    /// method, this function ensures that the random number is generated within range without risk of modulo bias.
     ///
     /// @param min: The minimum value of the range
     /// @param max: The maximum value of the range
@@ -39,21 +39,22 @@ access(all) contract RandomConsumer {
         return min + revertibleRandom<UInt64>(modulo: max - min + 1)
     }
 
-    /// Retrieves a random number in the range [min, max] using the provided PRG
-    /// to source additional randomness if needed
+    /// Retrieves a random number in the range [min, max] using the provided PRG reference to source additional
+    /// randomness if needed. This method is implemented to avoid risk of modulo bias. Passing the PRG by reference
+    /// ensures that its state is advanced and numbers proceed down the PRG's random walk.
     ///
-    /// @param prg: The PRG to use for random number generation
+    /// @param prg: The PRG (passed by reference) to use for random number generation
     /// @param min: The minimum value of the range
     /// @param max: The maximum value of the range
     ///
     /// @return A random number in the range [min, max]
     ///
-    access(all) fun getNumberInRange(prg: Xorshift128plus.PRG, min: UInt64, max: UInt64): UInt64 {
+    access(all) fun getNumberInRange(prg: &Xorshift128plus.PRG, min: UInt64, max: UInt64): UInt64 {
         pre {
             min < max:
-                "RandomConsumer.getNumberInRange: Cannot get random number with the provided range! "
-                .concat(" The min must be less than the max. Provided min of ")
-                .concat(min.toString()).concat(" and max of ".concat(max.toString()))
+            "RandomConsumer.getNumberInRange: Cannot get random number with the provided range! "
+            .concat(" The min must be less than the max. Provided min of ")
+            .concat(min.toString()).concat(" and max of ".concat(max.toString()))
         }
         let range = max - min // Calculate the inclusive range of the random number
         let bitsRequired = UInt256(self._mostSignificantBit(range)) // Number of bits needed to cover the range
@@ -255,7 +256,8 @@ access(all) contract RandomConsumer {
 
             // Create PRG from the provided request & generate a random number & generate a random number in the range
             let prg = self._getPRGFromRequest(request: <-request)
-            let res = RandomConsumer.getNumberInRange(prg: prg, min: min, max: max)
+            let prgRef: &Xorshift128plus.PRG = &prg
+            let res = RandomConsumer.getNumberInRange(prg: prgRef, min: min, max: max)
 
             emit RandomnessFulfilled(requestUUID: reqUUID, randomResult: res)
 
