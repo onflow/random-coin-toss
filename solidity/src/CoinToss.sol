@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity 0.8.19;
 
-// import {CadenceRandomConsumer} from "./CadenceRandomConsumer.sol";
 import {CadenceRandomConsumer} from "@flow-sol-utils/src/random/CadenceRandomConsumer.sol";
 
 /**
