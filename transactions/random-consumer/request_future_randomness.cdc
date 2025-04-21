@@ -1,5 +1,13 @@
 import "RandomConsumer"
 
+/// Requests randomness sourced at block height (>= current block height) via the RandomConsumer contract methods and
+/// stores the returned Request resource at the specified StoragePath. The Request can then be fulfilled in the block
+/// succeeding the committed block height.
+///
+/// @param blockHeight: The current or future block height where the random result should be sourced. If nil, current
+///     block height is used
+/// @param requestStoragePath: The StoragePath where the Request resource should be stored
+///
 transaction(blockHeight: UInt64?, requestStoragePath: StoragePath) {
 
     prepare(signer: auth(BorrowValue, SaveValue) &Account) {
