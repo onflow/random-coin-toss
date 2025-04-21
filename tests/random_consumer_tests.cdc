@@ -21,6 +21,9 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    let initRes = executeTransaction("../transactions/random-consumer/initialize_consumer.cdc", [], randomConsumer)
+    Test.expect(initRes, Test.beSucceeded())
 }
 
 access(all)
@@ -70,4 +73,57 @@ fun testGetNumberInRangeUpdatesStateSucceeds() {
 
     let diff = diffPRGRes.returnValue! as! Bool
     Test.assertEqual(true, diff)
+}
+
+access(all)
+fun testRequestAndFulfillRandomnessFromContractSucceeds() {
+    let signer = Test.createAccount()
+    
+    let requestRes = executeTransaction(
+        "../transactions/random-consumer/request_future_randomness.cdc",
+        [nil, /storage/TestRequest],
+        signer
+    )
+    Test.expect(requestRes, Test.beSucceeded())
+    let requestedEvts = Test.eventsOfType(Type<RandomConsumer.RandomnessRequested>())
+    let requestedEvt = requestedEvts[requestedEvts.length - 1] as! RandomConsumer.RandomnessRequested
+
+    let fulfilledRes = executeTransaction(
+        "../transactions/random-consumer/fulfill_random_request.cdc",
+        [/storage/TestRequest],
+        signer
+    )
+    Test.expect(fulfilledRes, Test.beSucceeded())
+    let fulfilledEvts = Test.eventsOfType(Type<RandomConsumer.RandomnessFulfilled>())
+    let fulfilledEvt = fulfilledEvts[fulfilledEvts.length - 1] as! RandomConsumer.RandomnessFulfilled
+
+    Test.assertEqual(requestedEvt.requestUUID, fulfilledEvt.requestUUID)
+}
+
+access(all)
+fun testRequestAndFulfillRandomnessInRangeFromContractSucceeds() {
+    let signer = Test.createAccount()
+    let min: UInt64 = 0
+    let max: UInt64 = 5
+    
+    let requestRes = executeTransaction(
+        "../transactions/random-consumer/request_future_randomness.cdc",
+        [nil, /storage/TestRequest],
+        signer
+    )
+    Test.expect(requestRes, Test.beSucceeded())
+    let requestedEvts = Test.eventsOfType(Type<RandomConsumer.RandomnessRequested>())
+    let requestedEvt = requestedEvts[requestedEvts.length - 1] as! RandomConsumer.RandomnessRequested
+
+    let fulfilledRes = executeTransaction(
+        "../transactions/random-consumer/fulfill_random_request_in_range.cdc",
+        [/storage/TestRequest, min, max],
+        signer
+    )
+    Test.expect(fulfilledRes, Test.beSucceeded())
+    let fulfilledEvts = Test.eventsOfType(Type<RandomConsumer.RandomnessFulfilled>())
+    let fulfilledEvt = fulfilledEvts[fulfilledEvts.length - 1] as! RandomConsumer.RandomnessFulfilled
+
+    Test.assertEqual(requestedEvt.requestUUID, fulfilledEvt.requestUUID)
+    Test.assert(min <= fulfilledEvt.randomResult && fulfilledEvt.randomResult <= max)
 }
