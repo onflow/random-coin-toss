@@ -117,6 +117,7 @@ access(all) contract RandomConsumer {
     /// @param request: The Request resource issued when randomness was requested
     ///
     /// @return A random UInt64
+    ///
     access(all) fun fulfillRandomRequest(_ request: @Request): UInt64 {
         return self.borrowConsumer().fulfillRandomRequest(<-request)
     }
@@ -128,6 +129,7 @@ access(all) contract RandomConsumer {
     /// @param max: The inclusive maximum of the range
     ///
     /// @return A random UInt64 within the requested range
+    ///
     access(all) fun fulfillRandomRequestInRange(_ request: @Request, min: UInt64, max: UInt64): UInt64 {
         return self.borrowConsumer().fulfillRandomInRange(request: <-request, min: min, max: max)
     }
@@ -138,6 +140,7 @@ access(all) contract RandomConsumer {
     ///
     /// @return A PRG with randomness sourced corresponding to the the Request's block height and salted with the
     ///     Request's uuid
+    ///
     access(all) fun fulfillRandomRequestWithPRG(_ request: @Request): Xorshift128plus.PRG {
         return self.borrowConsumer().fulfillWithPRG(request: <-request)
     }
