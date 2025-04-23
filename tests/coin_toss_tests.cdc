@@ -27,8 +27,6 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
-    let initRes = executeTransaction("../transactions/random-consumer/initialize_consumer.cdc", [], coinToss)
-    Test.expect(initRes, Test.beSucceeded())
 
     err = Test.deployContract(
         name: "CoinToss",
