@@ -274,6 +274,12 @@ access(all) contract RandomConsumer {
             return <-req
         }
 
+        /// Requests randomness sourced from a future block height, returning a Request resource
+        ///
+        /// @param at: The future block height for which randomness should be sourced
+        ///
+        /// @return A Request resource
+        ///
         access(Commit) fun requestFutureRandomness(at blockHeight: UInt64): @Request  {
             post {
                 blockHeight == result.block:
@@ -388,27 +394,18 @@ access(all) contract RandomConsumer {
         return bits
     }
 
-    /// TEMPORARY METHOD
-    /// Initializes a Consumer at /storage/consumer if none exists, no-ops otherwise
-    access(all)
-    fun initializeConsumer() {
-        let path = /storage/consumer
-        if self.account.storage.type(at: path) != nil {
-            return
-        }
-        self.account.storage.save(<-create Consumer(), to: path)
-    }
-
     /// Returns an authorized reference on the contract account's stored Consumer
     ///
     access(self)
     fun borrowConsumer(): auth(Commit, Reveal) &Consumer {
         let path = /storage/consumer
         return self.account.storage.borrow<auth(Commit, Reveal) &Consumer>(from: path)
-            ?? panic("Consumer not found at \(path) - ensure the Consumer has been initialized")
+            ?? panic("Consumer not found - ensure the Consumer has been initialized at \(path)")
     }
 
     init() {
         self.ConsumerStoragePath = StoragePath(identifier: "RandomConsumer_".concat(self.account.address.toString()))!
+
+        self.account.storage.save(<-create Consumer(), to: /storage/consumer)
     }
 }

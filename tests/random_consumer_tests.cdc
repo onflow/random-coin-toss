@@ -21,9 +21,6 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
-
-    let initRes = executeTransaction("../transactions/random-consumer/initialize_consumer.cdc", [], randomConsumer)
-    Test.expect(initRes, Test.beSucceeded())
 }
 
 access(all)
