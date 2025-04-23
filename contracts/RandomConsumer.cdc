@@ -95,6 +95,56 @@ access(all) contract RandomConsumer {
         return <-create Consumer()
     }
 
+    /*
+        CONSUMER ADAPTERS
+
+        The following public methods are helpful for those who wish to simply request & fulfill randomness without
+        managing their own Consumer resource - e.g. request/fulfill randomness in transaction context without a contract
+    */
+
+    /// Makes a request for randomness at some block height greater than or equal to the current block height
+    ///
+    /// @param at: The block height at which the Request may be revealed. Upon fulfillment, the source of randomness
+    ///     will be sourced from Flow's RandomnessBeaconHistory corresponding to the request's block height
+    ///
+    /// @return A Request resource which must be provided to fulfill the random request
+    access(all) fun requestFutureRandomness(at blockHeight: UInt64): @Request {
+        return <-self.borrowConsumer().requestFutureRandomness(at: blockHeight)
+    }
+
+    /// Fulfills a random request with a random UInt64 with randomness sourced from the corresponding Request.block
+    ///
+    /// @param request: The Request resource issued when randomness was requested
+    ///
+    /// @return A random UInt64
+    ///
+    access(all) fun fulfillRandomRequest(_ request: @Request): UInt64 {
+        return self.borrowConsumer().fulfillRandomRequest(<-request)
+    }
+
+    /// Fulfills a random request with a random UInt64 within inclusive range
+    ///
+    /// @param request: The Request resource issued when randomness was requested
+    /// @param min: The inclusive minimum of the range
+    /// @param max: The inclusive maximum of the range
+    ///
+    /// @return A random UInt64 within the requested range
+    ///
+    access(all) fun fulfillRandomRequestInRange(_ request: @Request, min: UInt64, max: UInt64): UInt64 {
+        return self.borrowConsumer().fulfillRandomInRange(request: <-request, min: min, max: max)
+    }
+
+    /// Fulfills a random request with a pseudo-random generator struct
+    ///
+    /// @param request: The Request resource issued when randomness was requested
+    ///
+    /// @return A PRG with randomness sourced corresponding to the the Request's block height and salted with the
+    ///     Request's uuid
+    ///
+    access(all) fun fulfillRandomRequestWithPRG(_ request: @Request): Xorshift128plus.PRG {
+        return self.borrowConsumer().fulfillWithPRG(request: <-request)
+    }
+
     ///////////////////
     // CONSTRUCTS
     ///////////////////
@@ -163,8 +213,12 @@ access(all) contract RandomConsumer {
         /// Whether the request has been fulfilled
         access(all) var fulfilled: Bool
 
-        init() {
-            self.block = getCurrentBlock().height
+        init(_ blockHeight: UInt64) {
+            pre {
+                getCurrentBlock().height <= blockHeight:
+                "Requested randomness for block \(blockHeight) which has passed. Can only request randomness sourced from future block heights."
+            }
+            self.block = blockHeight
             self.fulfilled = false
         }
 
@@ -210,7 +264,22 @@ access(all) contract RandomConsumer {
         /// @return A Request resource
         ///
         access(Commit) fun requestRandomness(): @Request {
-            let req <-create Request()
+            post {
+                result.block == getCurrentBlock().height:
+                "Requested randomness for block height \(getCurrentBlock().height) but returned Request for randomness at block \(result.block)"
+            }
+            let currentHeight = getCurrentBlock().height
+            let req <-create Request(currentHeight)
+            emit RandomnessRequested(requestUUID: req.uuid, block: req.block)
+            return <-req
+        }
+
+        access(Commit) fun requestFutureRandomness(at blockHeight: UInt64): @Request  {
+            post {
+                blockHeight == result.block:
+                "Requested randomness for block height \(blockHeight) but returned Request for randomness at block \(result.block)"
+            }
+            let req <-create Request(blockHeight)
             emit RandomnessRequested(requestUUID: req.uuid, block: req.block)
             return <-req
         }
@@ -303,7 +372,7 @@ access(all) contract RandomConsumer {
         }
     }
 
-    /// Returs the most significant bit of a UInt64
+    /// Returns the most significant bit of a UInt64
     ///
     /// @param x: The UInt64 to find the most significant bit of
     ///
@@ -317,6 +386,26 @@ access(all) contract RandomConsumer {
             bits = bits + 1
         }
         return bits
+    }
+
+    /// TEMPORARY METHOD
+    /// Initializes a Consumer at /storage/consumer if none exists, no-ops otherwise
+    access(all)
+    fun initializeConsumer() {
+        let path = /storage/consumer
+        if self.account.storage.type(at: path) != nil {
+            return
+        }
+        self.account.storage.save(<-create Consumer(), to: path)
+    }
+
+    /// Returns an authorized reference on the contract account's stored Consumer
+    ///
+    access(self)
+    fun borrowConsumer(): auth(Commit, Reveal) &Consumer {
+        let path = /storage/consumer
+        return self.account.storage.borrow<auth(Commit, Reveal) &Consumer>(from: path)
+            ?? panic("Consumer not found at \(path) - ensure the Consumer has been initialized")
     }
 
     init() {
