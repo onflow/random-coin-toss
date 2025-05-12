@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity 0.8.19;
 
-import {CadenceRandomConsumer} from "@flow-sol-utils/src/random/CadenceRandomConsumer.sol";
+import {CadenceRandomConsumer} from "@onflow/flow-sol-utils/src/random/CadenceRandomConsumer.sol";
 
 /**
  * @dev This contract is a simple coin toss game where users can place win prizes by flipping a coin as a demonstration
@@ -16,8 +16,17 @@ contract CoinToss is CadenceRandomConsumer {
     // A mapping to store the value sent by the user for each request
     mapping(uint256 => uint256) public openRequests;
 
-    event CoinFlipped(address indexed user, uint256 indexed requestId, uint256 amount);
-    event CoinRevealed(address indexed user, uint256 indexed requestId, uint8 coinFace, uint256 prize);
+    event CoinFlipped(
+        address indexed user,
+        uint256 indexed requestId,
+        uint256 amount
+    );
+    event CoinRevealed(
+        address indexed user,
+        uint256 indexed requestId,
+        uint8 coinFace,
+        uint256 prize
+    );
 
     /**
      * @dev Checks if a user has an open request.
@@ -31,7 +40,10 @@ contract CoinToss is CadenceRandomConsumer {
      */
     function flipCoin() public payable {
         require(_isNonZero(msg.value), "Must send FLOW to place flip a coin");
-        require(!_isNonZero(coinTosses[msg.sender]), "Must close previous coin flip before placing a new one");
+        require(
+            !_isNonZero(coinTosses[msg.sender]),
+            "Must close previous coin flip before placing a new one"
+        );
 
         // request randomness
         uint256 requestId = _requestRandomness();
@@ -47,7 +59,10 @@ contract CoinToss is CadenceRandomConsumer {
      * @dev Allows a user to reveal the result of the coin flip and claim their prize.
      */
     function revealCoin() public {
-        require(hasOpenRequest(msg.sender), "Caller has not flipped a coin - nothing to reveal");
+        require(
+            hasOpenRequest(msg.sender),
+            "Caller has not flipped a coin - nothing to reveal"
+        );
 
         // reveal random result and calculate winnings
         uint256 requestId = coinTosses[msg.sender];
